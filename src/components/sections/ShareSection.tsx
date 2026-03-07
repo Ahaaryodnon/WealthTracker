@@ -22,7 +22,7 @@ export default function ShareSection({
 
   const shareText =
     sinceArrived > 0
-      ? `The 10 richest people earned ${formatCurrency(Math.round(sinceArrived))} while I spent ${formatDuration(elapsedSeconds)} on WealthTracker. See for yourself:`
+      ? `The 10 richest people earned ${formatCurrency(Math.round(sinceArrived))} while I spent ${formatDuration(elapsedSeconds)} on the Inequality Calculator. See for yourself:`
       : "The 10 richest people earn more passively in seconds than most earn in a year. See for yourself:";
 
   const handleCopy = useCallback(async (text?: string, url?: string) => {
@@ -56,7 +56,7 @@ export default function ShareSection({
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title: "WealthTracker",
+          title: "The Inequality Calculator",
           text: shareText,
           url: url || undefined,
         });

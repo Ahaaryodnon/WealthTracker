@@ -13,9 +13,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WealthTracker — A Calculator for Inequality",
+  metadataBase: new URL("https://theinedualitycalculator.com"),
+  title: "The Inequality Calculator — Billionaire Passive Income in Real Time",
   description:
     "Watch the combined passive income of the world's 10 richest people tick up in real time.",
+  openGraph: {
+    title: "The Inequality Calculator",
+    description:
+      "Watch the combined passive income of the world's 10 richest people tick up in real time.",
+    url: "https://theinedualitycalculator.com",
+    siteName: "The Inequality Calculator",
+  },
 };
 
 export default function RootLayout({
