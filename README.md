@@ -26,7 +26,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font) for typography.
 
 ## Learn More
 
@@ -61,8 +61,29 @@ Both scripts require **CONVEX_URL** in the environment (e.g. from `.env.local`).
 - **Baseline check:** Run `npm run check` to run lint and build (suitable for CI). Ensures the app builds and passes ESLint.
 - **Optional pipeline/sync failure verification:** To confirm the pipeline does not overwrite Convex on invalid data: run `npm run update-data` with invalid or missing env (e.g. unset `CONVEX_URL` or point to a broken URL) and confirm the script exits non-zero and Convex is not overwritten. To confirm the sync step does not overwrite `src/data/` on Convex failure: with Convex unreachable or empty, run `npm run data:sync` and confirm it exits non-zero and does not overwrite `src/data/billionaires.ts`.
 
-## Deploy on Vercel
+## Deploy on Cloudflare Pages
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The app is a **static export** (`output: "export"`), so it deploys to [Cloudflare Pages](https://pages.cloudflare.com/) with no Node runtime.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Option A: Git integration (recommended)
+
+1. Push your repo to GitHub or GitLab and connect it in [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
+2. Configure the build:
+   - **Build command:** `npm run build`
+   - **Build output directory:** `out`
+   - **Root directory:** (leave empty)
+3. To use the latest data on each deploy, add a **Build step** or use a **Custom build command** that runs sync before build, e.g. `npm run data:sync && npm run build`. Set `CONVEX_URL` (and any other required env) in **Settings** → **Environment variables** for the build.
+4. Deploy; Pages will serve the contents of `out/` with CDN and HTTPS.
+
+### Option B: Deploy from CLI
+
+Install Wrangler and build, then deploy the `out` folder:
+
+```bash
+npm run build
+npx wrangler pages deploy out --project-name=wealthtracker
+```
+
+Create the Pages project in the dashboard first, or use `npx wrangler pages project create wealthtracker` once. For fresh data, run `npm run data:sync` before `npm run build`.
+
+See [Cloudflare Pages for static sites](https://developers.cloudflare.com/pages/static-assets/) and [Next.js static export](https://nextjs.org/docs/app/building-your-application/deploying/static-exports) for more details.

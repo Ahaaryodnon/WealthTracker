@@ -13,9 +13,10 @@ WealthTracker is a single-page wealth inequality tracker that displays a live Ac
 - `npm run lint` — ESLint (flat config, Next.js core-web-vitals + TypeScript)
 - `npm run update-data` — Pipeline: fetch Forbes data via rtb-api, validate, write to Convex (requires `CONVEX_URL`)
 - `npm run data:sync` — Sync: read from Convex, write `src/data/billionaires.ts` (requires `CONVEX_URL`)
+- `npm run deploy` — Build and deploy `out/` to Cloudflare Pages (requires Wrangler; run `data:sync` first for fresh data)
 - `npx convex dev` — Run Convex dev server (watches schema/functions)
 
-Run `data:sync` before production builds to get latest data snapshot. Both pipeline scripts need `CONVEX_URL` from `.env.local`.
+Run `data:sync` before production builds to get latest data snapshot. Deploy target: **Cloudflare Pages** (static `out/`). Both pipeline scripts need `CONVEX_URL` from `.env.local`.
 
 ## Architecture
 
