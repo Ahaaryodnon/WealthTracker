@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WealthTracker — Design Directions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #f5f5f5; padding: 24px; }
+    h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 24px; color: #333; }
+    .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+    .nav a { padding: 8px 16px; background: #fff; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; color: #333; font-size: 0.875rem; }
+    .nav a:hover { border-color: #333; background: #fafafa; }
+    section { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 48px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .dir-label { padding: 12px 20px; background: #1a1a1a; color: #fff; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+    .mockup { padding: 32px 24px; min-height: 60vh; }
+    .counter { font-weight: 700; line-height: 1.1; }
+    .sub { font-size: 0.875rem; opacity: .8; margin-top: 8px; }
+    .comparison { margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee; font-size: 0.9375rem; }
+    .share { margin-top: 24px; }
+    .share button { padding: 12px 20px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; }
+    /* Direction 1: Minimal */
+    #d1 .counter { font-family: 'IBM Plex Mono', monospace; font-size: clamp(2.5rem, 8vw, 4rem); color: #111; }
+    #d1 .sub { font-family: 'DM Sans', sans-serif; color: #555; }
+    #d1 .share button { background: #111; color: #fff; }
+    /* Direction 2: Editorial */
+    #d2 .mockup { background: #fafaf9; }
+    #d2 .counter { font-family: 'Instrument Serif', serif; font-size: clamp(2.25rem, 7vw, 3.5rem); color: #1a1a1a; }
+    #d2 .sub { color: #444; font-style: italic; }
+    #d2 .comparison { border-color: #e5e5e0; }
+    #d2 .share button { background: #1a1a1a; color: #fafaf9; }
+    /* Direction 3: Data-forward */
+    #d3 .dir-label { background: #0f172a; }
+    #d3 .mockup { background: #0f172a; color: #e2e8f0; }
+    #d3 .counter { font-family: 'IBM Plex Mono', monospace; font-size: clamp(2.25rem, 7vw, 3.5rem); color: #f8fafc; }
+    #d3 .sub { color: #94a3b8; }
+    #d3 .comparison { border-color: #334155; color: #cbd5e1; }
+    #d3 .share button { background: #3b82f6; color: #fff; }
+    /* Direction 4: Compact */
+    #d4 .mockup { padding: 20px 24px; }
+    #d4 .counter { font-family: 'IBM Plex Mono', monospace; font-size: clamp(2rem, 6vw, 3rem); color: #111; }
+    #d4 .sub { font-size: 0.8125rem; color: #666; }
+    #d4 .comparison { margin-top: 16px; padding-top: 16px; font-size: 0.875rem; }
+    #d4 .share { margin-top: 16px; }
+    #d4 .share button { background: #333; color: #fff; padding: 10px 16px; font-size: 0.8125rem; }
+  </style>
+</head>
+<body>
+  <h1>WealthTracker — Design direction mockups</h1>
+  <nav class="nav" aria-label="Jump to direction">
+    <a href="#d1">1. Minimal</a>
+    <a href="#d2">2. Editorial</a>
+    <a href="#d3">3. Data-forward (dark)</a>
+    <a href="#d4">4. Compact</a>
+  </nav>
+
+  <section id="d1">
+    <div class="dir-label">Direction 1 — Minimal</div>
+    <div class="mockup">
+      <div class="counter">£47,284,392</div>
+      <div class="sub">Combined passive income of the top 10 · updating in real time</div>
+      <div class="sub">Since you arrived: £312</div>
+      <div class="comparison">Jeff Bezos earns a median UK annual salary (£32,000) every 47 seconds.</div>
+      <div class="share"><button type="button">Share</button></div>
+    </div>
+  </section>
+
+  <section id="d2">
+    <div class="dir-label">Direction 2 — Editorial</div>
+    <div class="mockup">
+      <div class="counter">£47,284,392</div>
+      <div class="sub">Combined passive income of the top 10 · updating in real time</div>
+      <div class="sub">Since you arrived: £312</div>
+      <div class="comparison">Jeff Bezos earns a median UK annual salary (£32,000) every 47 seconds.</div>
+      <div class="share"><button type="button">Share</button></div>
+    </div>
+  </section>
+
+  <section id="d3">
+    <div class="dir-label">Direction 3 — Data-forward (dark)</div>
+    <div class="mockup">
+      <div class="counter">£47,284,392</div>
+      <div class="sub">Combined passive income of the top 10 · updating in real time</div>
+      <div class="sub">Since you arrived: £312</div>
+      <div class="comparison">Jeff Bezos earns a median UK annual salary (£32,000) every 47 seconds.</div>
+      <div class="share"><button type="button">Share</button></div>
+    </div>
+  </section>
+
+  <section id="d4">
+    <div class="dir-label">Direction 4 — Compact</div>
+    <div class="mockup">
+      <div class="counter">£47,284,392</div>
+      <div class="sub">Combined passive income of the top 10 · Since you arrived: £312</div>
+      <div class="comparison">Jeff Bezos earns a median UK annual salary (£32,000) every 47 seconds.</div>
+      <div class="share"><button type="button">Share</button></div>
+    </div>
+  </section>
+</body>
+</html>
