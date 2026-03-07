@@ -8,21 +8,28 @@ interface ShareSectionProps {
   elapsedSeconds: number;
 }
 
+function getShareUrl(): string {
+  if (typeof window === "undefined") return "";
+  return window.location.href;
+}
+
 export default function ShareSection({
   sinceArrived,
   elapsedSeconds,
 }: ShareSectionProps) {
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
 
   const shareText =
     sinceArrived > 0
       ? `The 10 richest people earned ${formatCurrency(Math.round(sinceArrived))} while I spent ${formatDuration(elapsedSeconds)} on WealthTracker. See for yourself:`
       : "The 10 richest people earn more passively in seconds than most earn in a year. See for yourself:";
 
-  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
-
-  const handleCopy = useCallback(async () => {
-    const textToCopy = `${shareText} ${shareUrl}`;
+  const handleCopy = useCallback(async (text?: string, url?: string) => {
+    const urlToUse = url ?? getShareUrl();
+    const textToUse = text ?? shareText;
+    const textToCopy = `${textToUse} ${urlToUse}`.trim();
+    setCopyError(false);
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(textToCopy);
@@ -33,32 +40,35 @@ export default function ShareSection({
       setTimeout(() => setCopied(false), 2500);
     } catch {
       try {
-        await navigator.clipboard?.writeText(shareUrl);
+        await navigator.clipboard?.writeText(urlToUse || textToCopy);
         setCopied(true);
         setTimeout(() => setCopied(false), 2500);
       } catch {
-        // Clipboard unavailable (e.g. non-secure context); no uncaught exception
+        setCopyError(true);
+        setTimeout(() => setCopyError(false), 3000);
       }
     }
-  }, [shareText, shareUrl]);
+  }, [shareText]);
 
   const handleShare = useCallback(async () => {
+    const url = getShareUrl();
+    setCopyError(false);
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
           title: "WealthTracker",
           text: shareText,
-          url: shareUrl,
+          url: url || undefined,
         });
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
-          await handleCopy();
+          await handleCopy(shareText, url);
         }
       }
     } else {
-      handleCopy();
+      await handleCopy(shareText, url);
     }
-  }, [shareText, shareUrl, handleCopy]);
+  }, [shareText, handleCopy]);
 
   return (
     <section
@@ -93,21 +103,30 @@ export default function ShareSection({
         <p>&ldquo;{shareText}&rdquo;</p>
       </div>
 
-      {/* Accessible feedback for copy action (screen readers) */}
+      {/* Accessible feedback for copy action (screen readers + visible when active) */}
       <div
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        className="sr-only"
+        className={copied ? "mt-2 text-sm font-medium text-emerald-600" : "sr-only"}
         id="share-copy-status"
       >
         {copied ? "Link copied" : ""}
       </div>
+      {copyError && (
+        <p
+          role="alert"
+          className="mt-2 text-sm text-amber-700"
+          id="share-copy-error"
+        >
+          Sharing isn&rsquo;t available in this browser. Try copying the link from the address bar.
+        </p>
+      )}
 
       <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <button
           type="button"
-          onClick={handleShare}
+          onClick={() => handleShare()}
           className="inline-flex min-h-[44px] h-12 min-w-[160px] items-center justify-center gap-2 rounded-full bg-zinc-900 px-6 text-sm font-medium text-white transition-colors hover:bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 active:bg-zinc-800"
           aria-label="Share"
         >
@@ -127,7 +146,7 @@ export default function ShareSection({
 
         <button
           type="button"
-          onClick={handleCopy}
+          onClick={() => handleCopy()}
           className="inline-flex min-h-[44px] h-12 min-w-[160px] items-center justify-center gap-2 rounded-full border border-zinc-200 px-6 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 active:bg-zinc-100"
           aria-label={copied ? "Link copied" : "Copy link"}
         >

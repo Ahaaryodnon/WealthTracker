@@ -28,8 +28,8 @@ export default function ComparisonSection({ entries }: ComparisonSectionProps) {
           const seconds = perSecond > 0 ? comp.value / perSecond : 0;
           const multiple = perDay > 0 ? perDay / comp.value : 0;
 
-          // Bar width: comparison value as fraction of daily earnings, capped for visibility
-          const barPercent = Math.max(0.5, (comp.value / perDay) * 100);
+          // Bar: comparison value as fraction of daily earnings; min width so segment is visible
+          const barPercent = Math.min(100, Math.max(1, (comp.value / perDay) * 100));
 
           return (
             <div key={comp.label}>
@@ -42,15 +42,14 @@ export default function ComparisonSection({ entries }: ComparisonSectionProps) {
                 </span>
               </div>
 
-              {/* Comparison bar */}
-              <div className="relative mb-2">
-                {/* Daily earnings bar (full width) */}
-                <div className="h-8 w-full rounded bg-zinc-900" />
-                {/* Comparison value bar (proportional) */}
+              {/* Single bar: left = one comparison unit, right = rest of daily earnings */}
+              <div className="mb-2 flex h-8 w-full overflow-hidden rounded-lg">
                 <div
-                  className="absolute inset-y-0 left-0 rounded bg-zinc-300"
-                  style={{ width: `${Math.min(barPercent, 100)}%` }}
+                  className="shrink-0 bg-zinc-400"
+                  style={{ width: `${barPercent}%`, minWidth: barPercent < 100 ? 6 : 0 }}
+                  aria-hidden
                 />
+                <div className="min-w-0 flex-1 bg-zinc-900" aria-hidden />
               </div>
 
               <p className="text-sm text-zinc-600">
