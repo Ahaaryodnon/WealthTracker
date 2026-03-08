@@ -38,9 +38,21 @@ function validateWealthTrackerData(obj: unknown): obj is WealthTrackerData {
   return true;
 }
 
-/** Forbes Real-Time Billionaires via rtb-api. Net worth in API is millions; we store in billions. */
-const RTB_API_BASE = "https://raw.githubusercontent.com/komed3/rtb-api/main/api";
+/**
+ * Canonical data source: Forbes Real-Time Billionaires via rtb-api.
+ * Net worth in API is millions; we store in billions.
+ *
+ * Delivery endpoints below are mirrors/CDN routes of the same source for transport resilience.
+ */
+const RTB_DELIVERY_ENDPOINTS = [
+  { name: "primary-github-raw", baseUrl: "https://raw.githubusercontent.com/komed3/rtb-api/main/api" },
+  { name: "fallback-statically-main", baseUrl: "https://cdn.statically.io/gh/komed3/rtb-api/main/api" },
+  { name: "fallback-jsdelivr-main", baseUrl: "https://cdn.jsdelivr.net/gh/komed3/rtb-api@main/api" },
+] as const;
+
 const TOP_N = 10;
+const MAX_RETRIES = 2;
+const RETRY_BASE_DELAY_MS = 400;
 /** US median personal income (approx); used for comparison baseline. Update or source separately if needed. */
 const DEFAULT_MEDIAN_SALARY = 59_384;
 
@@ -54,31 +66,83 @@ interface RtbListResponse {
   list: RtbListEntry[];
 }
 
-async function fetchFromSources(): Promise<WealthTrackerData> {
-  const latestRes = await fetch(`${RTB_API_BASE}/latest`, { signal: AbortSignal.timeout(15_000) });
-  if (!latestRes.ok) {
-    throw new Error(`Failed to fetch latest date: ${latestRes.status} ${latestRes.statusText}`);
-  }
-  const date = (await latestRes.text()).trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    throw new Error(`Invalid date from API: ${date}`);
+interface EndpointSuccess {
+  endpointName: string;
+  data: WealthTrackerData;
+}
+
+function isValidIsoDate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url: string, timeoutMs: number): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      }
+      return res;
+    } catch (error: unknown) {
+      lastError = error;
+      if (attempt < MAX_RETRIES) {
+        const backoff = RETRY_BASE_DELAY_MS * 2 ** attempt;
+        await wait(backoff);
+      }
+    }
   }
 
-  const listRes = await fetch(`${RTB_API_BASE}/list/rtb/${date}`, { signal: AbortSignal.timeout(30_000) });
-  if (!listRes.ok) {
-    throw new Error(`Failed to fetch list for ${date}: ${listRes.status} ${listRes.statusText}`);
+  throw new Error(`Failed after retries (${url}): ${toErrorMessage(lastError)}`);
+}
+
+function validateListEntries(entries: RtbListEntry[], endpointName: string): void {
+  if (entries.length < TOP_N) {
+    throw new Error(`[${endpointName}] not enough list entries (${entries.length}/${TOP_N})`);
   }
+  const top = entries.slice(0, TOP_N);
+  const seen = new Set<string>();
+  for (const entry of top) {
+    if (typeof entry.name !== "string" || entry.name.trim().length === 0) {
+      throw new Error(`[${endpointName}] invalid entry name`);
+    }
+    if (typeof entry.networth !== "number" || !Number.isFinite(entry.networth) || entry.networth <= 0) {
+      throw new Error(`[${endpointName}] invalid net worth for ${entry.name}`);
+    }
+    const key = entry.name.trim().toLowerCase();
+    if (seen.has(key)) {
+      throw new Error(`[${endpointName}] duplicate name in top ${TOP_N}: ${entry.name}`);
+    }
+    seen.add(key);
+  }
+}
+
+async function fetchFromEndpoint(endpoint: (typeof RTB_DELIVERY_ENDPOINTS)[number]): Promise<EndpointSuccess> {
+  const latestRes = await fetchWithRetry(`${endpoint.baseUrl}/latest`, 15_000);
+  const date = (await latestRes.text()).trim();
+  if (!isValidIsoDate(date)) {
+    throw new Error(`[${endpoint.name}] invalid date from API: ${date}`);
+  }
+
+  const listRes = await fetchWithRetry(`${endpoint.baseUrl}/list/rtb/${date}`, 30_000);
   const listJson = (await listRes.json()) as unknown;
   if (listJson === null || typeof listJson !== "object" || !Array.isArray((listJson as RtbListResponse).list)) {
-    throw new Error("Invalid list response: missing or invalid list array");
+    throw new Error(`[${endpoint.name}] invalid list response: missing or invalid list array`);
   }
   const { list } = listJson as RtbListResponse;
+  validateListEntries(list, endpoint.name);
   const top = list.slice(0, TOP_N);
 
   const entries: WealthTrackerData["entries"] = top.map((e) => {
-    if (typeof e.name !== "string" || typeof e.networth !== "number") {
-      throw new Error(`Invalid list entry: name=${typeof e.name} networth=${typeof e.networth}`);
-    }
     const billions = e.networth / 1000;
     return {
       name: e.name,
@@ -88,10 +152,34 @@ async function fetchFromSources(): Promise<WealthTrackerData> {
   });
 
   return {
-    dataAsOf: date,
-    medianSalary: DEFAULT_MEDIAN_SALARY,
-    entries,
+    endpointName: endpoint.name,
+    data: {
+      dataAsOf: date,
+      medianSalary: DEFAULT_MEDIAN_SALARY,
+      entries,
+    },
   };
+}
+
+async function fetchFromSources(): Promise<WealthTrackerData> {
+  const successes: EndpointSuccess[] = [];
+  const failures: string[] = [];
+
+  for (const endpoint of RTB_DELIVERY_ENDPOINTS) {
+    try {
+      const result = await fetchFromEndpoint(endpoint);
+      successes.push(result);
+      console.log(`[endpoint:${endpoint.name}] ok (${result.data.dataAsOf})`);
+      // Use first successful endpoint in priority order.
+      return result.data;
+    } catch (error: unknown) {
+      const message = `[endpoint:${endpoint.name}] failed: ${toErrorMessage(error)}`;
+      failures.push(message);
+      console.warn(message);
+    }
+  }
+
+  throw new Error(`All endpoints for canonical source failed.\n${failures.join("\n")}`);
 }
 
 async function main(): Promise<void> {
