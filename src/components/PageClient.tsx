@@ -16,17 +16,19 @@ interface PageClientProps {
   entries: BillionaireEntry[];
   medianSalary: number;
   dataAsOf: string;
+  initialYtdTotal: number;
 }
 
 export default function PageClient({
   entries,
   medianSalary,
   dataAsOf,
+  initialYtdTotal,
 }: PageClientProps) {
   const [sessionData, setSessionData] = useState(() => ({
     sinceArrived: 0,
     elapsedSeconds: 0,
-    ytdTotal: computeYtdTotal(entries, DEFAULT_RETURN_RATE),
+    ytdTotal: initialYtdTotal || computeYtdTotal(entries, DEFAULT_RETURN_RATE),
   }));
 
   const handleSessionUpdate = useCallback(
