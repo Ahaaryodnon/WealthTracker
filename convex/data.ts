@@ -9,6 +9,8 @@ const billionaireEntryValidator = v.object({
   name: v.string(),
   forbesNetWorth: v.optional(v.number()),
   bloombergNetWorth: v.optional(v.number()),
+  hurunNetWorth: v.optional(v.number()),
+  ceoworldNetWorth: v.optional(v.number()),
 });
 
 const canonicalDataValidator = v.object({
@@ -43,6 +45,8 @@ export const replaceCanonicalData = mutation({
         name: entry.name,
         forbesNetWorth: entry.forbesNetWorth,
         bloombergNetWorth: entry.bloombergNetWorth,
+        hurunNetWorth: entry.hurunNetWorth,
+        ceoworldNetWorth: entry.ceoworldNetWorth,
       });
     }
   },
@@ -63,10 +67,19 @@ export const getCanonicalData = query({
       name: r.name,
       forbesNetWorth: r.forbesNetWorth,
       bloombergNetWorth: r.bloombergNetWorth,
-      netWorth:
-        r.forbesNetWorth != null && r.bloombergNetWorth != null
-          ? (r.forbesNetWorth + r.bloombergNetWorth) / 2
-          : r.forbesNetWorth ?? r.bloombergNetWorth,
+      hurunNetWorth: r.hurunNetWorth,
+      ceoworldNetWorth: r.ceoworldNetWorth,
+      netWorth: (() => {
+        const values = [
+          r.forbesNetWorth,
+          r.bloombergNetWorth,
+          r.hurunNetWorth,
+          r.ceoworldNetWorth,
+        ].filter((v): v is number => v != null);
+        if (values.length === 0) return undefined;
+        const total = values.reduce((sum, value) => sum + value, 0);
+        return total / values.length;
+      })(),
     }));
 
     return {

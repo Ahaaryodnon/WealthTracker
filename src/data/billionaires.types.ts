@@ -14,6 +14,10 @@ export interface BillionaireEntry {
   forbesNetWorth?: number | null;
   /** Bloomberg-reported net worth; null when unavailable. */
   bloombergNetWorth?: number | null;
+  /** Hurun-reported net worth; null when unavailable. */
+  hurunNetWorth?: number | null;
+  /** CEOWORLD-reported net worth; null when unavailable. */
+  ceoworldNetWorth?: number | null;
   /** Other identifiers as needed (e.g. source IDs). */
   id?: string;
 }

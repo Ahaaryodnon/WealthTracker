@@ -11,6 +11,8 @@ export default defineSchema({
     name: v.string(),
     forbesNetWorth: v.optional(v.number()),
     bloombergNetWorth: v.optional(v.number()),
+    hurunNetWorth: v.optional(v.number()),
+    ceoworldNetWorth: v.optional(v.number()),
   }),
 
   metadata: defineTable({
