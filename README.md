@@ -74,7 +74,8 @@ The app is a **static export** (`output: "export"`), so it deploys to [Cloudflar
    - **Build output directory:** `out`
    - **Root directory:** (leave empty)
 4. For fresh data on each deploy, add **build-time** `CONVEX_URL`: open **Settings** → **Build** → **Build variables and secrets** and add `CONVEX_URL` with your Convex deployment URL. (Variables under **Variables and Secrets** are for runtime only and are not available during the build.)
-5. Deploy; Pages will serve the contents of `out/` with CDN and HTTPS.
+5. **Deploy command:** Leave the deploy command empty so Cloudflare Pages auto-deploys the build output. If your CI or dashboard has a separate "Deploy command" field, use **`npx wrangler pages deploy out --project-name=wealthtracker`** (the `out` argument is required so Wrangler knows which directory to upload). Do **not** use `npx wrangler versions upload`—that is for Workers, not static Pages.
+6. Deploy; Pages will serve the contents of `out/` with CDN and HTTPS.
 
 ### Option B: Deploy from CLI
 
