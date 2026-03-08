@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
-# Deploy static output to Cloudflare Pages.
-# Set CLOUDFLARE_PAGES_PROJECT_NAME to match your project in the dashboard (Workers & Pages).
-# Default: wealthtracker (change if you see "Project not found [8000007]").
+# Deploy the static export to the Cloudflare Worker service using Workers Assets.
 
 set -euo pipefail
 
-PROJECT_NAME="${CLOUDFLARE_PAGES_PROJECT_NAME:-wealthtracker}"
 WRANGLER_CMD=(npx --yes wrangler)
 
 if [[ ! -d "out" ]]; then
@@ -24,16 +21,16 @@ Use one of these:
   2. Export CLOUDFLARE_API_TOKEN before running this deploy
 
 Then rerun:
-  CLOUDFLARE_PAGES_PROJECT_NAME=$PROJECT_NAME npm run deploy:pages
+  npm run deploy:worker
 EOF
     exit 1
   fi
 fi
 
-if ! "${WRANGLER_CMD[@]}" pages project list >/dev/null 2>&1; then
-  echo "Unable to verify Cloudflare Pages projects for the current account." >&2
+if ! "${WRANGLER_CMD[@]}" deployments list --name wealthtracker >/dev/null 2>&1; then
+  echo "Unable to verify the Cloudflare Worker service 'wealthtracker' for the current account." >&2
   echo "Check your Cloudflare auth/token permissions, then rerun the deploy." >&2
   exit 1
 fi
 
-"${WRANGLER_CMD[@]}" pages deploy out --project-name="$PROJECT_NAME"
+"${WRANGLER_CMD[@]}" deploy --keep-vars

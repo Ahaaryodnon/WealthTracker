@@ -73,7 +73,7 @@ export default function PageClient({
         />
 
         <footer className="border-t border-zinc-200 py-8 text-center text-xs text-zinc-400">
-          The Inequality Calculator &middot; theinedualitycalculator.com &middot; Data from
+          The Inequality Calculator &middot; theinequalitycalculator.com &middot; Data from
           Forbes Real-Time Billionaires
         </footer>
       </div>

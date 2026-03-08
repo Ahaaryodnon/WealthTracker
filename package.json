@@ -14,7 +14,7 @@
     "data:sync": "tsx scripts/data-sync.ts",
     "build:ci": "(npm run data:sync || echo 'Sync failed or skipped; building with committed data.') && npm run build",
     "deploy": "npm run build && bash scripts/pages-deploy.sh",
-    "deploy:pages": "bash scripts/pages-deploy.sh"
+    "deploy:worker": "bash scripts/pages-deploy.sh"
   },
   "dependencies": {
     "convex": "^1.32.0",

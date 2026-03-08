@@ -1,5 +1,16 @@
-# Cloudflare Pages static site (Next.js static export).
-# Deploy with: npm run deploy:pages (uses CLOUDFLARE_PAGES_PROJECT_NAME; default: wealthtracker)
+# Cloudflare Worker static site deployment.
+# Build the Next.js static export to `out/`, then deploy this Worker with Wrangler.
 
 name = "wealthtracker"
-pages_build_output_dir = "./out"
+main = "./worker.js"
+compatibility_date = "2026-03-08"
+
+routes = [
+  "theinequalitycalculator.com/*",
+  "*.theinequalitycalculator.com/*",
+]
+
+[assets]
+directory = "./out"
+binding = "ASSETS"
+not_found_handling = "404-page"

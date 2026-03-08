@@ -73,8 +73,9 @@ The app is a **static export** (`output: "export"`), so it deploys to [Cloudflar
    - **Build command:** `npm run build:ci` (runs data:sync then build; if sync fails—e.g. Convex unreachable or dev deployment paused—build still succeeds using committed data)
    - **Build output directory:** `out`
    - **Root directory:** (leave empty)
+   - **Deploy command:** leave empty
 4. For fresh data on each deploy, add **build-time** `CONVEX_URL`: open **Settings** → **Build** → **Build variables and secrets** and add `CONVEX_URL` with your Convex deployment URL. (Variables under **Variables and Secrets** are for runtime only and are not available during the build.)
-5. **Deploy command:** If your pipeline has a separate "Deploy command", use **`npm run deploy:pages`** (or `bash scripts/pages-deploy.sh`). Set the env var **`CLOUDFLARE_PAGES_PROJECT_NAME`** to the **exact** project name from your dashboard (Workers & Pages → your project). If you see **"Project not found [8000007]"**, the name doesn’t match—open Workers & Pages and use the project name shown there (often the repo name, e.g. `WealthTracker-1`). Also set **`CLOUDFLARE_API_TOKEN`** (token with Cloudflare Pages Edit).
+5. Do not run `wrangler pages deploy` from the Cloudflare Pages build itself. Git-connected Pages projects build and deploy automatically after the build finishes.
 6. Deploy; Pages will serve the contents of `out/` with CDN and HTTPS.
 
 ### Option B: Deploy from CLI
@@ -89,5 +90,7 @@ CLOUDFLARE_PAGES_PROJECT_NAME=your-project-name npm run deploy:pages
 Replace `your-project-name` with the name shown in **Workers & Pages** in the dashboard. If the project doesn’t exist yet, create it: **Workers & Pages** → **Create** → **Pages** → **Direct Upload**, or run `npx wrangler pages project create your-project-name` once. For fresh data, run `npm run data:sync` before `npm run build`.
 
 **If you see `opennextjs-cloudflare` errors:** Your Pages project is using the Next.js (OpenNext) preset. Go to **Settings** → **Builds & deployments** → **Build configuration** and set **Framework preset** to **None**, then set Build command to `npm run build` and Build output directory to `out`.
+
+**If you see `Project not found [8000007]` in Cloudflare Pages build logs:** Remove any custom **Deploy command** from the Pages dashboard. In a Git-connected Pages project, Cloudflare already knows which project it is building, so a second `wrangler pages deploy ...` step is both unnecessary and error-prone.
 
 See [Cloudflare Pages for static sites](https://developers.cloudflare.com/pages/static-assets/) and [Next.js static export](https://nextjs.org/docs/app/building-your-application/deploying/static-exports) for more details.
