@@ -74,7 +74,7 @@ The app is a **static export** (`output: "export"`), so it deploys to [Cloudflar
    - **Build output directory:** `out`
    - **Root directory:** (leave empty)
 4. For fresh data on each deploy, add **build-time** `CONVEX_URL`: open **Settings** → **Build** → **Build variables and secrets** and add `CONVEX_URL` with your Convex deployment URL. (Variables under **Variables and Secrets** are for runtime only and are not available during the build.)
-5. **Deploy command:** Leave the deploy command empty so Cloudflare Pages auto-deploys the build output. If your CI or dashboard has a separate "Deploy command" field, use **`npx wrangler pages deploy out --project-name=wealthtracker`** (the `out` argument is required so Wrangler knows which directory to upload). Do **not** use `npx wrangler versions upload`—that is for Workers, not static Pages.
+5. **Deploy command:** Leave the deploy command empty so Cloudflare Pages auto-deploys the build output. If your CI or dashboard has a separate "Deploy command" field, use **`npx wrangler pages deploy out --project-name=inequalitycalculator`** (use the exact project name from your Pages dashboard; the `out` argument is required). Do **not** use `npx wrangler versions upload`—that is for Workers, not static Pages. For CI, set **`CLOUDFLARE_API_TOKEN`** to an API token with **Cloudflare Pages Edit** (Account → Cloudflare Pages → Edit); otherwise you may see "Authentication error [code: 10000]".
 6. Deploy; Pages will serve the contents of `out/` with CDN and HTTPS.
 
 ### Option B: Deploy from CLI
@@ -83,10 +83,10 @@ Install Wrangler and build, then deploy the `out` folder:
 
 ```bash
 npm run build
-npx wrangler pages deploy out --project-name=wealthtracker
+npx wrangler pages deploy out --project-name=inequalitycalculator
 ```
 
-Create the Pages project in the dashboard first, or use `npx wrangler pages project create wealthtracker` once. For fresh data, run `npm run data:sync` before `npm run build`.
+Use the same project name as in your Cloudflare Pages dashboard (e.g. `inequalitycalculator`). Create the project in the dashboard first if needed, or run `npx wrangler pages project create inequalitycalculator` once. For fresh data, run `npm run data:sync` before `npm run build`.
 
 **If you see `opennextjs-cloudflare` errors:** Your Pages project is using the Next.js (OpenNext) preset. Go to **Settings** → **Builds & deployments** → **Build configuration** and set **Framework preset** to **None**, then set Build command to `npm run build` and Build output directory to `out`.
 

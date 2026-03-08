@@ -1,6 +1,6 @@
 # Cloudflare Pages static site (Next.js static export).
-# Deploy with: npx wrangler pages deploy out --project-name=wealthtracker
-# (Passing "out" explicitly ensures CI finds the directory; config is fallback.)
+# Deploy with: npx wrangler pages deploy out --project-name=inequalitycalculator
+# (Project name must match the Pages project in your Cloudflare dashboard.)
 
-name = "wealthtracker"
+name = "inequalitycalculator"
 pages_build_output_dir = "./out"
