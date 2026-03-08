@@ -1,6 +1,5 @@
 # Cloudflare Pages static site (Next.js static export).
-# Deploy with: npx wrangler pages deploy out --project-name=inequalitycalculator
-# (Project name must match the Pages project in your Cloudflare dashboard.)
+# Deploy with: npm run deploy:pages (uses CLOUDFLARE_PAGES_PROJECT_NAME; default: wealthtracker)
 
-name = "inequalitycalculator"
+name = "wealthtracker"
 pages_build_output_dir = "./out"
