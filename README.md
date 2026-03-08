@@ -68,12 +68,13 @@ The app is a **static export** (`output: "export"`), so it deploys to [Cloudflar
 ### Option A: Git integration (recommended)
 
 1. Push your repo to GitHub or GitLab and connect it in [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-2. Configure the build:
-   - **Build command:** `npm run build`
+2. **Important:** Set **Framework preset** to **None**. (If you leave it as "Next.js", Cloudflare will use `opennextjs-cloudflare` and the build will fail—this app is a static export, not SSR.)
+3. Configure the build:
+   - **Build command:** `npm run build:ci` (runs data:sync then build; if sync fails—e.g. Convex unreachable or dev deployment paused—build still succeeds using committed data)
    - **Build output directory:** `out`
    - **Root directory:** (leave empty)
-3. To use the latest data on each deploy, add a **Build step** or use a **Custom build command** that runs sync before build, e.g. `npm run data:sync && npm run build`. Set `CONVEX_URL` (and any other required env) in **Settings** → **Environment variables** for the build.
-4. Deploy; Pages will serve the contents of `out/` with CDN and HTTPS.
+4. For fresh data on each deploy, add **build-time** `CONVEX_URL`: open **Settings** → **Build** → **Build variables and secrets** and add `CONVEX_URL` with your Convex deployment URL. (Variables under **Variables and Secrets** are for runtime only and are not available during the build.)
+5. Deploy; Pages will serve the contents of `out/` with CDN and HTTPS.
 
 ### Option B: Deploy from CLI
 
@@ -85,5 +86,7 @@ npx wrangler pages deploy out --project-name=wealthtracker
 ```
 
 Create the Pages project in the dashboard first, or use `npx wrangler pages project create wealthtracker` once. For fresh data, run `npm run data:sync` before `npm run build`.
+
+**If you see `opennextjs-cloudflare` errors:** Your Pages project is using the Next.js (OpenNext) preset. Go to **Settings** → **Builds & deployments** → **Build configuration** and set **Framework preset** to **None**, then set Build command to `npm run build` and Build output directory to `out`.
 
 See [Cloudflare Pages for static sites](https://developers.cloudflare.com/pages/static-assets/) and [Next.js static export](https://nextjs.org/docs/app/building-your-application/deploying/static-exports) for more details.
