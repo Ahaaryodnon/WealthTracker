@@ -46,7 +46,7 @@ export default function StickyCounter({
         {/* Content */}
         <div className="relative flex items-center gap-2">
           <span className="live-dot" aria-hidden="true" />
-          <span className="font-mono text-sm font-semibold tabular-nums text-white/90">
+          <span className="numeric text-sm font-semibold text-white/90">
             {formatCurrency(mainTotal)}
           </span>
           <span className="hidden text-xs text-white/40 sm:inline">earned</span>
@@ -54,7 +54,7 @@ export default function StickyCounter({
 
         <div className="relative flex items-center gap-2">
           <span className="text-xs text-white/40">Since you arrived</span>
-          <span className="font-mono text-sm font-semibold tabular-nums text-emerald-400">
+          <span className="numeric text-sm font-semibold text-emerald-400">
             {formatCurrency(sinceArrived)}
           </span>
         </div>

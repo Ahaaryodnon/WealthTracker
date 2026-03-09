@@ -42,7 +42,7 @@ export default function ProfileHeader({ entry }: ProfileHeaderProps) {
             </h1>
           </div>
 
-          <p className="font-mono text-xl font-semibold text-zinc-900 tabular-nums sm:text-2xl">
+          <p className="numeric text-xl font-semibold text-zinc-900 sm:text-2xl">
             {formatCompact(nw * 1e9)}
           </p>
 

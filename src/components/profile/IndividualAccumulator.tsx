@@ -56,7 +56,7 @@ export default function IndividualAccumulator({ entry, dataAsOf }: IndividualAcc
 
       <div className="mb-4" aria-live="polite">
         <p className="text-xs text-zinc-400 mb-1">Since you arrived</p>
-        <p className="font-mono text-3xl font-bold tabular-nums text-zinc-900 sm:text-4xl">
+        <p className="numeric text-3xl font-bold text-zinc-900 sm:text-4xl">
           {formatCurrency(sinceArrived)}
         </p>
       </div>
@@ -64,19 +64,19 @@ export default function IndividualAccumulator({ entry, dataAsOf }: IndividualAcc
       <div className="grid grid-cols-3 gap-4">
         <div>
           <p className="text-xs text-zinc-400">Per second</p>
-          <p className="font-mono text-sm font-semibold tabular-nums text-zinc-900">
+          <p className="numeric text-sm font-semibold text-zinc-900">
             {formatCurrency(Math.round(rate))}
           </p>
         </div>
         <div>
           <p className="text-xs text-zinc-400">Per minute</p>
-          <p className="font-mono text-sm font-semibold tabular-nums text-zinc-900">
+          <p className="numeric text-sm font-semibold text-zinc-900">
             {formatCurrency(Math.round(perMinute))}
           </p>
         </div>
         <div>
           <p className="text-xs text-zinc-400">Per hour</p>
-          <p className="font-mono text-sm font-semibold tabular-nums text-zinc-900">
+          <p className="numeric text-sm font-semibold text-zinc-900">
             {formatCurrency(Math.round(perHour))}
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function IndividualAccumulator({ entry, dataAsOf }: IndividualAcc
 
       <div className="mt-3 pt-3 border-t border-zinc-100">
         <p className="text-xs text-zinc-400">Per day</p>
-        <p className="font-mono text-lg font-semibold tabular-nums text-zinc-900">
+        <p className="numeric text-lg font-semibold text-zinc-900">
           {formatCurrency(Math.round(perDay))}
         </p>
       </div>

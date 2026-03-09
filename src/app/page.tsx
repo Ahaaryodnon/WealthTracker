@@ -31,7 +31,7 @@ export default function Home() {
           <p className="mb-2 text-xs font-medium uppercase tracking-widest text-zinc-400">
             Static snapshot (JavaScript disabled)
           </p>
-          <p className="mb-4 font-mono text-4xl font-bold tabular-nums text-zinc-900">
+          <p className="numeric mb-4 text-4xl font-bold text-zinc-900">
             {formatCurrency(staticSnapshot)}
           </p>
           <p className="mb-2 text-sm text-zinc-600">

@@ -148,7 +148,7 @@ export default function SalaryCalculator({
               inputMode="numeric"
               value={inputValue}
               onChange={handleInputChange}
-              className="w-full rounded-2xl border border-zinc-200 bg-white py-4 pl-9 pr-4 font-mono text-2xl font-bold tabular-nums text-zinc-900 shadow-sm outline-none transition-shadow focus:border-blue-300 focus:ring-2 focus:ring-blue-100 sm:text-3xl"
+              className="numeric w-full rounded-2xl border border-zinc-200 bg-white py-4 pl-9 pr-4 text-2xl font-bold text-zinc-900 shadow-sm outline-none transition-shadow focus:border-blue-300 focus:ring-2 focus:ring-blue-100 sm:text-3xl"
               placeholder="59,384"
               aria-describedby="salary-description"
             />
@@ -188,7 +188,7 @@ export default function SalaryCalculator({
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">
                 They passively earn your salary in
               </p>
-              <p className="mt-3 font-mono text-4xl font-bold tabular-nums text-blue-900 sm:text-5xl">
+              <p className="numeric mt-3 text-4xl font-bold text-blue-900 sm:text-5xl">
                 {stats.timeToEarnLabel}
               </p>
               <p className="mt-2 text-sm text-blue-600/60">
@@ -204,7 +204,7 @@ export default function SalaryCalculator({
                 </p>
                 <p
                   ref={yearsRef}
-                  className="mt-2 font-mono text-2xl font-bold tabular-nums text-zinc-900 sm:text-3xl"
+                  className="numeric mt-2 text-2xl font-bold text-zinc-900 sm:text-3xl"
                 >
                   {yearsDisplay}
                 </p>
@@ -217,7 +217,7 @@ export default function SalaryCalculator({
                 <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-zinc-400">
                   Daily earning multiple
                 </p>
-                <p className="mt-2 font-mono text-2xl font-bold tabular-nums text-zinc-900 sm:text-3xl">
+                <p className="numeric mt-2 text-2xl font-bold text-zinc-900 sm:text-3xl">
                   {formatNumber(stats.dailyMultiple)}&times;
                 </p>
                 <p className="mt-1 text-[10px] text-zinc-400">

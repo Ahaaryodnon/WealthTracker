@@ -41,7 +41,7 @@ function RateCard({
     >
       <p
         ref={ref}
-        className={`inline-flex items-center justify-center whitespace-nowrap font-mono font-bold leading-none tabular-nums text-zinc-900 ${
+        className={`numeric inline-flex items-center justify-center whitespace-nowrap font-bold leading-none text-zinc-900 ${
           isLongValue
             ? "text-[clamp(1.45rem,2.4vw,1.9rem)] tracking-[-0.05em]"
             : "text-[clamp(1.7rem,4vw,2.25rem)] tracking-tight"
@@ -103,7 +103,7 @@ export default function ContextStrip({
           <p className="section-kicker mb-3">So far this year</p>
           <div className="glass-panel mx-auto max-w-lg rounded-3xl px-6 py-5">
             <p
-              className="font-mono text-2xl font-bold tabular-nums text-zinc-900 sm:text-3xl"
+              className="numeric text-2xl font-bold text-zinc-900 sm:text-3xl"
               role="status"
             >
               {formatCurrency(ytdTotal)}

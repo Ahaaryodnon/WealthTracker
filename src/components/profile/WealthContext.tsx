@@ -38,7 +38,7 @@ export default function WealthContext({ entry, medianSalary }: WealthContextProp
             <div key={comp.label} className="flex items-baseline justify-between gap-4">
               <span className="text-sm text-zinc-600">{comp.label}</span>
               <div className="text-right">
-                <span className="font-mono text-sm font-semibold tabular-nums text-zinc-900">
+                <span className="numeric text-sm font-semibold text-zinc-900">
                   {formatTimeShort(seconds)}
                 </span>
                 <span className="ml-1 text-xs text-zinc-400">

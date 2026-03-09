@@ -109,7 +109,7 @@ export default function ShareSection({
               <p className="mt-4 text-sm text-slate-400">
                 In that time, the 10 richest people earned
               </p>
-              <p className="mt-2 font-mono text-4xl font-bold tabular-nums text-white sm:text-5xl">
+              <p className="numeric mt-2 text-4xl font-bold text-white sm:text-5xl">
                 {formatCurrency(Math.round(sinceArrived))}
               </p>
               {salaryMultiple > 0 && (
@@ -128,7 +128,7 @@ export default function ShareSection({
                 The 10 richest people earn more passively in seconds
                 than most earn in a year.
               </p>
-              <p className="mt-4 font-mono text-3xl font-bold text-white">
+              <p className="font-editorial mt-4 text-3xl font-semibold text-white">
                 See for yourself.
               </p>
             </>

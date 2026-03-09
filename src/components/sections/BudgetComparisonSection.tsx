@@ -91,12 +91,12 @@ export default function BudgetComparisonSection({
             </p>
             <p className="mt-1 text-sm text-zinc-500">
               Total annual cost:{" "}
-              <span className="font-mono font-semibold tabular-nums text-zinc-700">
+              <span className="numeric font-semibold text-zinc-700">
                 {formatCompact(totalAnnualCost)}
               </span>
             </p>
           </div>
-          <p className="font-mono text-xl font-bold tabular-nums text-emerald-700 sm:text-2xl">
+          <p className="numeric text-xl font-bold text-emerald-700 sm:text-2xl">
             {combinedYears >= 1
               ? `${combinedYears.toFixed(1)} yrs`
               : `${combinedCoveragePercent.toFixed(0)}%`}
@@ -149,13 +149,13 @@ export default function BudgetComparisonSection({
                 </div>
                 <div className="shrink-0 text-right">
                   {canFullyFund ? (
-                    <p className="font-mono text-lg font-bold tabular-nums text-emerald-700">
+                    <p className="numeric text-lg font-bold text-emerald-700">
                       {yearsCanFund >= 10
                         ? `${formatNumber(Math.round(yearsCanFund))} yrs`
                         : `${yearsCanFund.toFixed(1)} yrs`}
                     </p>
                   ) : (
-                    <p className="font-mono text-lg font-bold tabular-nums text-amber-600">
+                    <p className="numeric text-lg font-bold text-amber-600">
                       {percentOfBudget.toFixed(0)}%
                     </p>
                   )}

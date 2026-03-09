@@ -67,7 +67,7 @@ function ComparisonCard({
           </p>
           <p
             ref={countRef}
-            className="mt-1 font-mono text-2xl font-bold tabular-nums text-zinc-900 sm:text-3xl"
+            className="numeric mt-1 text-2xl font-bold text-zinc-900 sm:text-3xl"
           >
             {countDisplay}
           </p>
@@ -84,7 +84,7 @@ function ComparisonCard({
 
           <div className="mt-2 flex items-center gap-4">
             <div className="flex-1">
-              <p className="font-mono text-2xl font-bold tabular-nums text-blue-900 sm:text-3xl">
+              <p className="numeric text-2xl font-bold text-blue-900 sm:text-3xl">
                 {timeLabel}
               </p>
               <p className="mt-1 text-xs text-blue-600/60">
