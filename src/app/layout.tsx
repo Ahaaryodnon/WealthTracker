@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,8 +12,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const playfairDisplay = Playfair_Display({
+  variable: "--font-editorial",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://theinedualitycalculator.com"),
+  metadataBase: new URL("https://theinequalitycalculator.com"),
   title: "The Inequality Calculator — Billionaire Passive Income in Real Time",
   description:
     "Watch the combined passive income of the world's 10 richest people tick up in real time.",
@@ -21,7 +27,7 @@ export const metadata: Metadata = {
     title: "The Inequality Calculator",
     description:
       "Watch the combined passive income of the world's 10 richest people tick up in real time.",
-    url: "https://theinedualitycalculator.com",
+    url: "https://theinequalitycalculator.com",
     siteName: "The Inequality Calculator",
   },
 };
@@ -34,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased`}
       >
         {children}
       </body>

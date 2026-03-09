@@ -1,0 +1,16 @@
+# Cloudflare Worker static site deployment.
+# Build the Next.js static export to `out/`, then deploy this Worker with Wrangler.
+
+name = "wealthtracker"
+main = "./worker.js"
+compatibility_date = "2026-03-08"
+
+routes = [
+  "theinequalitycalculator.com/*",
+  "*.theinequalitycalculator.com/*",
+]
+
+[assets]
+directory = "./out"
+binding = "ASSETS"
+not_found_handling = "404-page"

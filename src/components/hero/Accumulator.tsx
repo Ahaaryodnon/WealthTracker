@@ -13,12 +13,12 @@ import { DEFAULT_RETURN_RATE } from "@/lib/constants";
 export interface AccumulatorProps {
   entries: BillionaireEntry[];
   dataAsOf: string;
-  medianSalary: number;
   returnRate?: number;
   onSessionUpdate?: (
     sinceArrived: number,
     elapsedSeconds: number,
-    ytdTotal?: number
+    ytdTotal?: number,
+    mainTotal?: number
   ) => void;
 }
 
@@ -35,7 +35,6 @@ const COUNT_UP_DURATION_MS = 1500;
 export default function Accumulator({
   entries,
   dataAsOf,
-  medianSalary: _medianSalary,
   returnRate = DEFAULT_RETURN_RATE,
   onSessionUpdate,
 }: AccumulatorProps) {
@@ -121,8 +120,8 @@ export default function Accumulator({
       setSinceArrived(sessionVal);
       const ytdTotal = accumulatedFromRate(rate, getYtdElapsedSeconds());
 
-      // Notify parent of session updates
-      onSessionUpdateRef.current?.(sessionVal, fromSession, ytdTotal);
+      // Notify parent of session updates (includes mainTotal for sticky counter)
+      onSessionUpdateRef.current?.(sessionVal, fromSession, ytdTotal, realTotal);
 
       rafRef.current = requestAnimationFrame(loop);
     }
@@ -143,9 +142,9 @@ export default function Accumulator({
   return (
     <div className="flex flex-col items-center">
       {/* Main Accumulator — the one dominant number */}
-      <div className="mb-3" aria-live="polite" aria-atomic="true">
+      <div className="mb-4" aria-live="polite" aria-atomic="true">
         <span
-          className="font-mono text-6xl font-bold tracking-tight text-zinc-900 tabular-nums sm:text-8xl"
+          className="text-gradient-hero block font-mono text-5xl font-bold tracking-tight tabular-nums sm:text-7xl lg:text-[6.5rem]"
           role="status"
           aria-label="Combined passive income since data date"
         >
@@ -153,19 +152,22 @@ export default function Accumulator({
         </span>
       </div>
 
-      <p className="mb-6 text-sm text-zinc-500 sm:text-base">
+      <div className="mb-5 h-[3px] w-24 rounded-full bg-gradient-to-r from-blue-500 via-blue-400 to-amber-400" aria-hidden="true" />
+
+      <p className="mb-7 max-w-lg text-sm leading-relaxed text-slate-400 sm:text-base">
         earned by the world&rsquo;s 10 richest people — without working
       </p>
 
       {/* "Since you arrived" badge */}
       <div
-        className="mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2"
+        className="mb-2 inline-flex items-center gap-2 rounded-full border border-slate-700/50 bg-slate-800/40 px-4 py-2.5 backdrop-blur-sm"
         aria-live="polite"
         aria-atomic="true"
       >
-        <span className="text-sm text-zinc-500">Since you arrived</span>
+        <span className="live-dot" aria-hidden="true" />
+        <span className="text-sm text-slate-400">Since you arrived</span>
         <span
-          className="font-mono text-lg font-semibold text-zinc-900 tabular-nums sm:text-xl"
+          className="font-mono text-lg font-semibold tabular-nums text-emerald-400 sm:text-xl"
           role="status"
           aria-label="Passive income accumulated since you opened this page"
         >
