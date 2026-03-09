@@ -1,12 +1,14 @@
+"use client";
+
 import type { BillionaireEntry } from "@/data/billionaires.types";
 import { getNetWorth } from "@/lib/billionaire-utils";
+import { useLocale } from "@/contexts/LocaleContext";
 import { combinedPassiveIncomePerSecond } from "@/lib/passive-income-calc";
 import { formatCurrency } from "@/lib/format-currency";
-import { DEFAULT_RETURN_RATE, COMPARISONS } from "@/lib/constants";
+import { DEFAULT_RETURN_RATE } from "@/lib/constants";
 
 interface WealthContextProps {
   entry: BillionaireEntry;
-  medianSalary: number;
 }
 
 function formatTimeShort(seconds: number): string {
@@ -16,33 +18,36 @@ function formatTimeShort(seconds: number): string {
   return `${(seconds / 86400).toFixed(1)} days`;
 }
 
-export default function WealthContext({ entry, medianSalary }: WealthContextProps) {
+export default function WealthContext({ entry }: WealthContextProps) {
+  const { locale } = useLocale();
   const nw = getNetWorth(entry);
-  const perSecond = combinedPassiveIncomePerSecond([entry], DEFAULT_RETURN_RATE);
+  const perSecondUsd = combinedPassiveIncomePerSecond([entry], DEFAULT_RETURN_RATE);
+  const perSecondLocal = perSecondUsd * locale.exchangeRateFromUsd;
 
-  if (perSecond <= 0) return null;
+  if (perSecondLocal <= 0) return null;
 
-  const comparisons = [
-    { label: "Median US salary", value: medianSalary, source: COMPARISONS[0].source },
-    ...COMPARISONS.slice(1),
-  ];
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
+  const nwLocal = nw * locale.exchangeRateFromUsd;
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-6">
       <h2 className="mb-4 text-sm font-medium text-zinc-500">Wealth in context</h2>
 
       <div className="space-y-3">
-        {comparisons.map((comp) => {
-          const seconds = comp.value / perSecond;
+        {locale.comparisons.map((comp) => {
+          const seconds = comp.value / perSecondLocal;
           return (
-            <div key={comp.label} className="flex items-baseline justify-between gap-4">
+            <div key={comp.id} className="flex items-baseline justify-between gap-4">
               <span className="text-sm text-zinc-600">{comp.label}</span>
               <div className="text-right">
                 <span className="numeric text-sm font-semibold text-zinc-900">
                   {formatTimeShort(seconds)}
                 </span>
                 <span className="ml-1 text-xs text-zinc-400">
-                  ({formatCurrency(comp.value)})
+                  ({formatCurrency(comp.value, formatOpts)})
                 </span>
               </div>
             </div>
@@ -51,7 +56,7 @@ export default function WealthContext({ entry, medianSalary }: WealthContextProp
       </div>
 
       <p className="mt-4 text-xs text-zinc-400">
-        Time to earn each amount through passive income at {Math.round(DEFAULT_RETURN_RATE * 100)}% annual return on ${nw.toFixed(1)}B net worth.
+        Time to earn each amount through passive income at {Math.round(DEFAULT_RETURN_RATE * 100)}% annual return on {locale.currencySymbol}{nwLocal.toFixed(1)}B net worth.
       </p>
     </div>
   );

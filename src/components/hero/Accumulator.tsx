@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import type { BillionaireEntry } from "@/data/billionaires.types";
+import { useLocale } from "@/contexts/LocaleContext";
 import {
   combinedPassiveIncomePerSecond,
   accumulatedFromRate,
@@ -38,7 +39,13 @@ export default function Accumulator({
   returnRate = DEFAULT_RETURN_RATE,
   onSessionUpdate,
 }: AccumulatorProps) {
+  const { locale } = useLocale();
   const rate = combinedPassiveIncomePerSecond(entries, returnRate);
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
+  const toLocal = locale.exchangeRateFromUsd;
 
   const [mainTotal, setMainTotal] = useState(0);
   const [sinceArrived, setSinceArrived] = useState(0);
@@ -148,7 +155,7 @@ export default function Accumulator({
           role="status"
           aria-label="Combined passive income since data date"
         >
-          {formatCurrency(mainTotal)}
+          {formatCurrency(mainTotal * toLocal, formatOpts)}
         </span>
       </div>
 
@@ -171,7 +178,7 @@ export default function Accumulator({
           role="status"
           aria-label="Passive income accumulated since you opened this page"
         >
-          {formatCurrency(sinceArrived)}
+          {formatCurrency(sinceArrived * toLocal, formatOpts)}
         </span>
       </div>
     </div>

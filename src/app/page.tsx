@@ -17,7 +17,7 @@ function staticTotalAtBuild(entries: typeof wealthTrackerData.entries, dataAsOf:
 }
 
 export default function Home() {
-  const { entries, medianSalary, dataAsOf } = wealthTrackerData;
+  const { entries, dataAsOf } = wealthTrackerData;
   const staticSnapshot = staticTotalAtBuild(entries, dataAsOf);
   const initialYtdTotal = computeYtdTotal(entries, DEFAULT_RETURN_RATE);
 
@@ -45,7 +45,6 @@ export default function Home() {
       </noscript>
       <PageClient
         entries={entries}
-        medianSalary={medianSalary}
         dataAsOf={dataAsOf}
         initialYtdTotal={initialYtdTotal}
       />

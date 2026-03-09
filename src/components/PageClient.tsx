@@ -20,14 +20,12 @@ import ScrollProgress from "./sections/ScrollProgress";
 
 interface PageClientProps {
   entries: BillionaireEntry[];
-  medianSalary: number;
   dataAsOf: string;
   initialYtdTotal: number;
 }
 
 export default function PageClient({
   entries,
-  medianSalary,
   dataAsOf,
   initialYtdTotal,
 }: PageClientProps) {
@@ -90,7 +88,6 @@ export default function PageClient({
       <div ref={heroRef}>
         <HeroSection
           entries={entries}
-          medianSalary={medianSalary}
           dataAsOf={dataAsOf}
           returnRate={returnRate}
           onSessionUpdate={handleSessionUpdate}
@@ -127,19 +124,11 @@ export default function PageClient({
 
         <Bridge>Now make it personal.</Bridge>
 
-        <SalaryCalculator
-          entries={entries}
-          returnRate={returnRate}
-          medianSalary={medianSalary}
-        />
+        <SalaryCalculator entries={entries} returnRate={returnRate} />
 
         <Bridge>Here&rsquo;s who&rsquo;s earning it.</Bridge>
 
-        <TopTenList
-          entries={entries}
-          medianSalary={medianSalary}
-          returnRate={returnRate}
-        />
+        <TopTenList entries={entries} returnRate={returnRate} />
 
         <Bridge>We built this with public data. Here&rsquo;s how.</Bridge>
 
@@ -150,7 +139,6 @@ export default function PageClient({
         <ShareSection
           sinceArrived={sessionData.sinceArrived}
           elapsedSeconds={sessionData.elapsedSeconds}
-          medianSalary={medianSalary}
         />
 
         <footer className="border-t border-zinc-100 mt-0 py-8 text-center text-xs text-zinc-400">

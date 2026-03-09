@@ -1,20 +1,15 @@
 "use client";
 
 import type { BillionaireEntry } from "@/data/billionaires.types";
+import type { ComparisonItem } from "@/lib/locale";
+import { useLocale } from "@/contexts/LocaleContext";
 import { combinedPassiveIncomePerSecond } from "@/lib/passive-income-calc";
-import { DEFAULT_RETURN_RATE, COMPARISONS } from "@/lib/constants";
+import { DEFAULT_RETURN_RATE } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format-currency";
 import { useScrollReveal } from "@/lib/useScrollReveal";
 import { useCountUp } from "@/lib/useCountUp";
 import ComparisonCycleBar from "./ComparisonCycleBar";
 import ComparisonTimer from "./ComparisonTimer";
-
-/** Human-readable effort descriptions for each comparison */
-const EFFORT_LABELS: Record<string, string> = {
-  "Median US salary": "1 year of work",
-  "Average US home price": "30-year mortgage",
-  "Teacher's annual salary (US avg)": "1 year of teaching",
-};
 
 interface ComparisonSectionProps {
   entries: BillionaireEntry[];
@@ -26,15 +21,20 @@ function ComparisonCard({
   comp,
   perSecond,
   index,
+  formatOpts,
+  exchangeRateFromUsd,
 }: {
-  comp: (typeof COMPARISONS)[number];
+  comp: ComparisonItem;
   perSecond: number;
   index: number;
+  formatOpts: { numberLocale: string; currency: string };
+  exchangeRateFromUsd: number;
 }) {
-  const seconds = perSecond > 0 ? comp.value / perSecond : 0;
+  const perSecondLocal = perSecond * exchangeRateFromUsd;
+  const seconds = perSecondLocal > 0 ? comp.value / perSecondLocal : 0;
   const cycleSeconds =
     Number.isFinite(seconds) && seconds > 0 ? seconds : 1;
-  const effortLabel = EFFORT_LABELS[comp.label] ?? "";
+  const effortLabel = comp.effortLabel;
 
   const timeLabel =
     seconds < 60
@@ -43,11 +43,10 @@ function ComparisonCard({
         ? `${(seconds / 60).toFixed(1)} minutes`
         : `${(seconds / 3600).toFixed(1)} hours`;
 
-  // Count-up the dollar value on scroll
   const [countRef, countDisplay] = useCountUp<HTMLParagraphElement>({
     end: comp.value,
     duration: 1200,
-    formatter: (v) => formatCurrency(Math.round(v)),
+    formatter: (v) => formatCurrency(Math.round(v), formatOpts),
   });
 
   return (
@@ -121,8 +120,13 @@ export default function ComparisonSection({
   entries,
   returnRate = DEFAULT_RETURN_RATE,
 }: ComparisonSectionProps) {
+  const { locale } = useLocale();
   const sectionRef = useScrollReveal<HTMLElement>();
   const perSecond = combinedPassiveIncomePerSecond(entries, returnRate);
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
 
   return (
     <section
@@ -138,12 +142,14 @@ export default function ComparisonSection({
       </p>
 
       <div className="space-y-6">
-        {COMPARISONS.map((comp, i) => (
+        {locale.comparisons.map((comp, i) => (
           <ComparisonCard
-            key={comp.label}
+            key={comp.id}
             comp={comp}
             perSecond={perSecond}
             index={i}
+            formatOpts={formatOpts}
+            exchangeRateFromUsd={locale.exchangeRateFromUsd}
           />
         ))}
       </div>

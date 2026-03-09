@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/contexts/LocaleContext";
 import { formatDataAsOf } from "@/lib/format-date";
 import { useScrollReveal } from "@/lib/useScrollReveal";
 
@@ -11,8 +12,9 @@ interface MethodologySectionProps {
 export default function MethodologySection({
   dataAsOf,
 }: MethodologySectionProps) {
+  const { locale } = useLocale();
   const [expanded, setExpanded] = useState(false);
-  const dataAsOfFormatted = formatDataAsOf(dataAsOf);
+  const dataAsOfFormatted = formatDataAsOf(dataAsOf, locale.dateLocale);
   const sectionRef = useScrollReveal<HTMLElement>();
 
   return (
@@ -142,7 +144,9 @@ export default function MethodologySection({
                   available; we average with Forbes where both exist
                 </li>
                 <li>
-                  Median US salary from <strong>US Census Bureau</strong>
+                  {locale.id === "en-GB"
+                    ? "Median UK salary from ONS"
+                    : "Median US salary from US Census Bureau"}
                 </li>
               </ul>
             </div>

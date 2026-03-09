@@ -12,6 +12,12 @@
 import * as fs from "fs";
 import * as path from "path";
 import { chromium, type Browser, type Page } from "playwright";
+import {
+  buildPayload,
+  dedupeEntries,
+  normalizeText,
+  parseNetWorthBillionsFromText,
+} from "./scrape-source-utils";
 
 const DEFAULT_OUTPUT_DIR = path.resolve(process.cwd(), "scripts", "data");
 const DEFAULT_TOP_N = 100;
@@ -37,38 +43,6 @@ interface CliOptions {
   outputDir: string;
   headed: boolean;
   solveTimeoutMs: number;
-}
-
-/** Parse a string like "$123.4 B" or "123.4" into billions (number). */
-function parseNetWorthBillionsFromText(text: string): number | null {
-  const cleaned = text.replace(/[$,%\s]/g, "").replace(",", ".").toLowerCase();
-  if (cleaned.includes("b") || cleaned.includes("bn") || cleaned.includes("billion")) {
-    const num = parseFloat(cleaned.replace(/[a-z]/g, ""));
-    return Number.isFinite(num) ? num : null;
-  }
-  if (cleaned.includes("m") || cleaned.includes("mn") || cleaned.includes("million")) {
-    const num = parseFloat(cleaned.replace(/[a-z]/g, ""));
-    return Number.isFinite(num) ? num / 1000 : null;
-  }
-  const num = parseFloat(cleaned);
-  if (!Number.isFinite(num)) return null;
-  return num > 1000 ? num / 1000 : num;
-}
-
-function normalizeText(text: string): string {
-  return text.replace(/\s+/g, " ").trim();
-}
-
-function dedupeEntries(entries: Array<{ name: string; netWorthBillions: number }>): Array<{ name: string; netWorthBillions: number }> {
-  const seen = new Set<string>();
-  const deduped: Array<{ name: string; netWorthBillions: number }> = [];
-  for (const entry of entries) {
-    const key = entry.name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-    if (!entry.name || seen.has(key)) continue;
-    seen.add(key);
-    deduped.push(entry);
-  }
-  return deduped;
 }
 
 async function clickFirstVisibleButton(page: Page, labels: string[]): Promise<boolean> {
@@ -275,13 +249,6 @@ function parseArgs(): CliOptions {
   const sources: ScraperId[] =
     sourceArg === "all" ? ["bloomberg", "hurun", "ceoworld"] : (sourceArg.split(",").map((s) => s.trim()) as ScraperId[]);
   return { sources, outputDir, headed, solveTimeoutMs };
-}
-
-function buildPayload(entries: Array<{ name: string; netWorthBillions: number }>, dataAsOf: string) {
-  return {
-    dataAsOf,
-    entries: entries.map((e) => ({ name: e.name, netWorthBillions: e.netWorthBillions })),
-  };
 }
 
 async function runScraper(

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLocale } from "@/contexts/LocaleContext";
 import { formatCurrency } from "@/lib/format-currency";
 
 interface StickyCounterProps {
@@ -18,7 +19,13 @@ export default function StickyCounter({
   sinceArrived,
   heroExited,
 }: StickyCounterProps) {
+  const { locale } = useLocale();
   const [visible, setVisible] = useState(false);
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
+  const toLocal = locale.exchangeRateFromUsd;
 
   useEffect(() => {
     if (heroExited) {
@@ -47,7 +54,7 @@ export default function StickyCounter({
         <div className="relative flex items-center gap-2">
           <span className="live-dot" aria-hidden="true" />
           <span className="numeric text-sm font-semibold text-white/90">
-            {formatCurrency(mainTotal)}
+            {formatCurrency(mainTotal * toLocal, formatOpts)}
           </span>
           <span className="hidden text-xs text-white/40 sm:inline">earned</span>
         </div>
@@ -55,7 +62,7 @@ export default function StickyCounter({
         <div className="relative flex items-center gap-2">
           <span className="text-xs text-white/40">Since you arrived</span>
           <span className="numeric text-sm font-semibold text-emerald-400">
-            {formatCurrency(sinceArrived)}
+            {formatCurrency(sinceArrived * toLocal, formatOpts)}
           </span>
         </div>
       </div>

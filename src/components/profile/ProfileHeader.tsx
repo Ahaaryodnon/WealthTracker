@@ -1,5 +1,8 @@
+"use client";
+
 import type { BillionaireEntry } from "@/data/billionaires.types";
 import { getNetWorth } from "@/lib/billionaire-utils";
+import { useLocale } from "@/contexts/LocaleContext";
 import { formatCompact } from "@/lib/format-currency";
 import Link from "next/link";
 
@@ -8,7 +11,13 @@ interface ProfileHeaderProps {
 }
 
 export default function ProfileHeader({ entry }: ProfileHeaderProps) {
+  const { locale } = useLocale();
   const nw = getNetWorth(entry);
+  const nwLocal = nw * 1e9 * locale.exchangeRateFromUsd;
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
 
   return (
     <div className="border-b border-zinc-200 pb-8">
@@ -43,7 +52,7 @@ export default function ProfileHeader({ entry }: ProfileHeaderProps) {
           </div>
 
           <p className="numeric text-xl font-semibold text-zinc-900 sm:text-2xl">
-            {formatCompact(nw * 1e9)}
+            {formatCompact(nwLocal, formatOpts)}
           </p>
 
           <div className="mt-2 flex flex-wrap gap-2 text-sm text-zinc-500">

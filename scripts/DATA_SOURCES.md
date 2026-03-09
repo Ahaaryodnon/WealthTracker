@@ -1,5 +1,17 @@
 # Supplemental data sources (update-data pipeline)
 
+## Pipeline overview
+
+End-to-end flow:
+
+1. **Acquisition** – Forbes (primary) is fetched from rtb-api by `scripts/update-data.ts`. Supplemental sources (Bloomberg, Hurun, CEOWORLD) have no public API; you either leave them unset or **produce JSON yourself** via scraping or a hosted feed.
+2. **Canonical write** – `scripts/update-data.ts` validates and merges all sources, enriches bios from Forbes, then writes the canonical dataset to Convex via `api.data.replaceCanonicalData`.
+3. **Static sync** – `scripts/data-sync.ts` reads from Convex (`api.data.getCanonicalData`) and regenerates `src/data/billionaires.ts` for the Next.js build.
+
+**Firecrawl’s insertion point:** Upstream of step 1. Firecrawl (or the Playwright scraper) runs **before** `update-data`. It only needs to write JSON files that match the contract below and that `BLOOMBERG_SOURCE_URL` / `HURUN_SOURCE_URL` / `CEOWORLD_SOURCE_URL` can point to. No changes to Convex or the app are required.
+
+---
+
 The `update-data` script can merge net-worth data from multiple sources. Forbes (via rtb-api) is the primary source. These optional env vars add **Bloomberg**, **Hurun**, and **CEOWORLD** for cross-source averaging:
 
 - `BLOOMBERG_SOURCE_URL`
@@ -52,7 +64,18 @@ The primary source (Forbes via [rtb-api](https://github.com/komed3/rtb-api)) doe
 
 ---
 
-## Web scraping option
+## When to use Firecrawl vs Playwright
+
+| Tool | Best for | Notes |
+|------|----------|--------|
+| **Firecrawl** | Hurun, CEOWORLD | Cloud-based scrape; no local browser. Requires Firecrawl API key. Good when you want to avoid Playwright for these sources. |
+| **Playwright** | Bloomberg, or all three | Local Chromium; supports headed mode for Bloomberg’s anti-bot. Use `scrape-sources:headed` if Bloomberg blocks headless. Also used for e2e tests. |
+
+You can mix: e.g. run Firecrawl for Hurun/CEOWORLD and Playwright only for Bloomberg.
+
+---
+
+## Web scraping option (Playwright)
 
 The repo includes an optional scraper that uses Playwright to fetch Bloomberg, Hurun, and CEOWORLD pages and write JSON in the format expected by the pipeline.
 
@@ -101,3 +124,44 @@ npm run scrape-sources:headed -- --source=bloomberg
 This opens a visible browser so you can manually complete any challenge. The script will wait for the Bloomberg page to become scrapeable before continuing.
 
 **Caveats:** Site markup changes often; if a source returns very few entries, update the selectors in `scripts/scrape-sources.ts`. Respect each site’s terms of use and robots.txt; run scrapers sparingly (e.g. daily at most).
+
+---
+
+## Firecrawl scraping option
+
+A second scraper uses the [Firecrawl](https://firecrawl.dev) CLI to fetch **Hurun** and **CEOWORLD** only (Bloomberg is not included; use Playwright for that). It writes the same JSON contract to `scripts/data/` (or `--output`), so the pipeline and env vars are unchanged.
+
+**Setup:**
+
+1. Install the Firecrawl CLI (or use the project devDependency via npx):
+   ```bash
+   npm install -g firecrawl-cli
+   ```
+2. Authenticate (one-time). Either set `FIRECRAWL_API_KEY` in your environment, or run:
+   ```bash
+   firecrawl login --browser
+   ```
+   The browser will open to complete auth.
+
+**Run the scraper:**
+
+```bash
+npm run scrape-sources:firecrawl                  # Hurun + CEOWORLD → scripts/data/
+npm run scrape-sources:firecrawl -- --source=hurun
+npm run scrape-sources:firecrawl -- --source=ceoworld --output=./my-data
+```
+
+Output files: `scripts/data/hurun.json`, `scripts/data/ceoworld.json` (or your `--output` dir). Scraped markdown is written to `.firecrawl/` (gitignored) for debugging.
+
+**Use scraped data in the pipeline:** Same as Playwright. Point the env vars at the JSON files, then run `npm run update-data` (see “Use scraped data in the pipeline” above).
+
+**Caveats:** Firecrawl consumes API credits per scrape. If a source returns very few entries, inspect `.firecrawl/<source>.md` and adjust parsing in `scripts/scrape-sources-firecrawl.ts` if the site structure changed.
+
+---
+
+## Recommended operator workflow
+
+1. **Scrape** – Run one or both scrapers so that the JSON files you want exist under `scripts/data/` (or your `--output` dir).
+2. **Review** – Optionally open the generated `.json` files and confirm entry count and names look reasonable.
+3. **Update canonical data** – Set the env vars to those file paths and run `npm run update-data` to merge into Convex.
+4. **Sync static data** – Run `npm run data:sync` to regenerate `src/data/billionaires.ts` for the Next.js build (or let `build:ci` run sync then build).

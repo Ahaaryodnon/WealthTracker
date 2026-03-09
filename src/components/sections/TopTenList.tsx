@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { BillionaireEntry } from "@/data/billionaires.types";
+import { useLocale } from "@/contexts/LocaleContext";
+import { getMedianSalaryFromLocale } from "@/lib/locale";
 import { combinedPassiveIncomePerSecond } from "@/lib/passive-income-calc";
 import { DEFAULT_RETURN_RATE } from "@/lib/constants";
 import { formatCurrency, formatCompact } from "@/lib/format-currency";
@@ -10,7 +12,6 @@ import { useScrollReveal } from "@/lib/useScrollReveal";
 
 interface TopTenListProps {
   entries: BillionaireEntry[];
-  medianSalary: number;
   returnRate?: number;
 }
 
@@ -22,27 +23,41 @@ function getNetWorth(entry: BillionaireEntry): number {
 
 export default function TopTenList({
   entries,
-  medianSalary,
   returnRate = DEFAULT_RETURN_RATE,
 }: TopTenListProps) {
+  const { locale } = useLocale();
   const [sortKey, setSortKey] = useState<SortKey>("networth");
   const sectionRef = useScrollReveal<HTMLElement>();
 
+  const medianSalary = getMedianSalaryFromLocale(locale);
   const totalNetWorth = entries.reduce((sum, e) => sum + getNetWorth(e), 0);
+  const perSecondLocalMultiplier = locale.exchangeRateFromUsd;
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
 
   const enriched = useMemo(
     () =>
       entries.map((entry) => {
         const nw = getNetWorth(entry);
-        const perSecond = combinedPassiveIncomePerSecond([entry], returnRate);
+        const perSecondUsd = combinedPassiveIncomePerSecond([entry], returnRate);
+        const perSecond = perSecondUsd * perSecondLocalMultiplier;
         const perMinute = perSecond * 60;
         const salarySeconds =
           perSecond > 0 && medianSalary > 0 ? medianSalary / perSecond : 0;
         const sharePercent =
           totalNetWorth > 0 ? (nw / totalNetWorth) * 100 : 0;
-        return { entry, nw, perSecond, perMinute, salarySeconds, sharePercent };
+        return {
+          entry,
+          nw,
+          perSecond,
+          perMinute,
+          salarySeconds,
+          sharePercent,
+        };
       }),
-    [entries, returnRate, medianSalary, totalNetWorth]
+    [entries, returnRate, medianSalary, totalNetWorth, perSecondLocalMultiplier]
   );
 
   const sorted = useMemo(() => {
@@ -90,8 +105,8 @@ export default function TopTenList({
           {(
             [
               ["networth", "Net worth"],
-              ["perminute", "$/min"],
-              ["persecond", "$/sec"],
+              ["perminute", `${locale.currencySymbol}/min`],
+              ["persecond", `${locale.currencySymbol}/sec`],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -115,10 +130,10 @@ export default function TopTenList({
                   : `${(salarySeconds / 60).toFixed(1)}m`;
               const metricValue =
                 sortKey === "networth"
-                  ? formatCompact(nw * 1e9)
+                  ? formatCompact(nw * 1e9 * perSecondLocalMultiplier, formatOpts)
                   : sortKey === "persecond"
-                    ? `${formatCurrency(Math.round(perSecond))}/sec`
-                    : `${formatCurrency(Math.round(perMinute))}/min`;
+                    ? `${formatCurrency(Math.round(perSecond), formatOpts)}/sec`
+                    : `${formatCurrency(Math.round(perMinute), formatOpts)}/min`;
               const metricDetail =
                 sortKey === "networth"
                   ? `${sharePercent.toFixed(1)}% of top 10 wealth`
