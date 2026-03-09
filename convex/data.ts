@@ -7,11 +7,32 @@ import { v } from "convex/values";
 
 const billionaireEntryValidator = v.object({
   name: v.string(),
+  slug: v.optional(v.string()),
+  rank: v.optional(v.number()),
   forbesNetWorth: v.optional(v.number()),
   bloombergNetWorth: v.optional(v.number()),
   hurunNetWorth: v.optional(v.number()),
   ceoworldNetWorth: v.optional(v.number()),
+  citizenship: v.optional(v.string()),
+  source: v.optional(v.string()),
+  industries: v.optional(v.array(v.string())),
+  organization: v.optional(v.string()),
+  title: v.optional(v.string()),
+  age: v.optional(v.number()),
+  gender: v.optional(v.string()),
+  selfMade: v.optional(v.boolean()),
+  imageUrl: v.optional(v.string()),
+  bio: v.optional(v.array(v.string())),
+  about: v.optional(v.array(v.string())),
 });
+
+function nameToSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 const canonicalDataValidator = v.object({
   dataAsOf: v.string(),
@@ -43,10 +64,23 @@ export const replaceCanonicalData = mutation({
     for (const entry of data.entries) {
       await ctx.db.insert("billionaires", {
         name: entry.name,
+        slug: entry.slug ?? nameToSlug(entry.name),
+        rank: entry.rank,
         forbesNetWorth: entry.forbesNetWorth,
         bloombergNetWorth: entry.bloombergNetWorth,
         hurunNetWorth: entry.hurunNetWorth,
         ceoworldNetWorth: entry.ceoworldNetWorth,
+        citizenship: entry.citizenship,
+        source: entry.source,
+        industries: entry.industries,
+        organization: entry.organization,
+        title: entry.title,
+        age: entry.age,
+        gender: entry.gender,
+        selfMade: entry.selfMade,
+        imageUrl: entry.imageUrl,
+        bio: entry.bio,
+        about: entry.about,
       });
     }
   },
@@ -65,10 +99,23 @@ export const getCanonicalData = query({
 
     const entries = rows.map((r) => ({
       name: r.name,
+      slug: r.slug ?? nameToSlug(r.name),
+      rank: r.rank,
       forbesNetWorth: r.forbesNetWorth,
       bloombergNetWorth: r.bloombergNetWorth,
       hurunNetWorth: r.hurunNetWorth,
       ceoworldNetWorth: r.ceoworldNetWorth,
+      citizenship: r.citizenship,
+      source: r.source,
+      industries: r.industries,
+      organization: r.organization,
+      title: r.title,
+      age: r.age,
+      gender: r.gender,
+      selfMade: r.selfMade,
+      imageUrl: r.imageUrl,
+      bio: r.bio,
+      about: r.about,
       netWorth: (() => {
         const values = [
           r.forbesNetWorth,

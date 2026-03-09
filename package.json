@@ -11,6 +11,8 @@
     "test": "playwright test",
     "test:e2e": "playwright test",
     "update-data": "tsx scripts/update-data.ts",
+    "scrape-sources": "tsx scripts/scrape-sources.ts",
+    "scrape-sources:headed": "tsx scripts/scrape-sources.ts --headed",
     "data:sync": "tsx scripts/data-sync.ts",
     "build:ci": "(npm run data:sync || echo 'Sync failed or skipped; building with committed data.') && npm run build",
     "deploy": "npm run build && bash scripts/pages-deploy.sh",
@@ -18,6 +20,7 @@
   },
   "dependencies": {
     "convex": "^1.32.0",
+    "html2canvas": "^1.4.1",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"

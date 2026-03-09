@@ -8,6 +8,10 @@
 /** Single billionaire entry. Per-source net worth when multiple sources (e.g. Forbes, Bloomberg). */
 export interface BillionaireEntry {
   name: string;
+  /** URL-safe identifier (e.g. "elon-musk"). */
+  slug: string;
+  /** Global wealth rank. */
+  rank?: number;
   /** Computed or primary net worth when using a single source. */
   netWorth?: number;
   /** Forbes-reported net worth; null when unavailable. */
@@ -18,8 +22,27 @@ export interface BillionaireEntry {
   hurunNetWorth?: number | null;
   /** CEOWORLD-reported net worth; null when unavailable. */
   ceoworldNetWorth?: number | null;
-  /** Other identifiers as needed (e.g. source IDs). */
-  id?: string;
+  /** Country citizenship code (e.g. "United States"). */
+  citizenship?: string;
+  /** Primary wealth source labels (e.g. ["Tesla", "SpaceX"]). */
+  source?: string;
+  /** Industry categories. */
+  industries?: string[];
+  /** Organization name and title. */
+  organization?: string;
+  title?: string;
+  /** Age at time of data fetch. */
+  age?: number;
+  /** Gender. */
+  gender?: string;
+  /** Whether self-made wealth. */
+  selfMade?: boolean;
+  /** Forbes headshot image URL. */
+  imageUrl?: string;
+  /** Biographical text paragraphs. */
+  bio?: string[];
+  /** Personal background paragraphs. */
+  about?: string[];
 }
 
 /** Metadata for the canonical dataset: data-as-of date and comparison baseline. */

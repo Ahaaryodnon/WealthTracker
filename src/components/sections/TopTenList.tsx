@@ -1,30 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import Link from "next/link";
 import type { BillionaireEntry } from "@/data/billionaires.types";
 import { combinedPassiveIncomePerSecond } from "@/lib/passive-income-calc";
 import { DEFAULT_RETURN_RATE } from "@/lib/constants";
 import { formatCurrency, formatCompact } from "@/lib/format-currency";
+import { useScrollReveal } from "@/lib/useScrollReveal";
 
 interface TopTenListProps {
   entries: BillionaireEntry[];
   medianSalary: number;
+  returnRate?: number;
 }
+
+type SortKey = "networth" | "perminute" | "persecond";
 
 function getNetWorth(entry: BillionaireEntry): number {
   return entry.netWorth ?? entry.forbesNetWorth ?? entry.bloombergNetWorth ?? 0;
 }
 
-export default function TopTenList({ entries, medianSalary }: TopTenListProps) {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+export default function TopTenList({
+  entries,
+  medianSalary,
+  returnRate = DEFAULT_RETURN_RATE,
+}: TopTenListProps) {
+  const [sortKey, setSortKey] = useState<SortKey>("networth");
+  const sectionRef = useScrollReveal<HTMLElement>();
+
   const totalNetWorth = entries.reduce((sum, e) => sum + getNetWorth(e), 0);
+
+  const enriched = useMemo(
+    () =>
+      entries.map((entry) => {
+        const nw = getNetWorth(entry);
+        const perSecond = combinedPassiveIncomePerSecond([entry], returnRate);
+        const perMinute = perSecond * 60;
+        const salarySeconds =
+          perSecond > 0 && medianSalary > 0 ? medianSalary / perSecond : 0;
+        const sharePercent =
+          totalNetWorth > 0 ? (nw / totalNetWorth) * 100 : 0;
+        return { entry, nw, perSecond, perMinute, salarySeconds, sharePercent };
+      }),
+    [entries, returnRate, medianSalary, totalNetWorth]
+  );
+
+  const sorted = useMemo(() => {
+    const arr = [...enriched];
+    if (sortKey === "perminute" || sortKey === "persecond") {
+      arr.sort((a, b) => b.perMinute - a.perMinute);
+    } else {
+      arr.sort((a, b) => b.nw - a.nw);
+    }
+    return arr;
+  }, [enriched, sortKey]);
 
   if (entries.length === 0) {
     return (
-      <section
-        aria-label="Top 10 Billionaires"
-        className="border-t border-zinc-200 py-16 sm:py-24"
-      >
+      <section aria-label="Top 10 Billionaires" className="py-20 sm:py-32">
         <p className="text-center text-zinc-500">
           No data available. Run{" "}
           <code className="rounded bg-zinc-100 px-1 py-0.5 text-sm">
@@ -38,101 +71,146 @@ export default function TopTenList({ entries, medianSalary }: TopTenListProps) {
 
   return (
     <section
+      ref={sectionRef}
+      id="leaderboard"
       aria-label="Top 10 Billionaires"
-      className="border-t border-zinc-200 py-16 sm:py-24"
+      className="reveal py-20 sm:py-32"
     >
-      <h2 className="mb-2 text-center text-lg font-medium text-zinc-900">
+      <p className="section-kicker mb-3 text-center">Leaderboard</p>
+      <h2 className="section-title mb-2 text-center">
         Who&rsquo;s earning right now
       </h2>
-      <p className="mb-10 text-center text-sm text-zinc-500">
-        Individual passive income at 5% annual return
+      <p className="section-lead mb-8 text-center text-sm sm:text-base">
+        Individual passive income at {Math.round(returnRate * 100)}% annual return
       </p>
 
-      <ol className="space-y-1">
-        {entries.map((entry, i) => {
-          const nw = getNetWorth(entry);
-          const perMinute =
-            combinedPassiveIncomePerSecond([entry], DEFAULT_RETURN_RATE) * 60;
-          const sharePercent =
-            totalNetWorth > 0 ? (nw / totalNetWorth) * 100 : 0;
-          const salaryPerSecond = combinedPassiveIncomePerSecond(
-            [entry],
-            DEFAULT_RETURN_RATE
-          );
-          const salarySeconds =
-            salaryPerSecond > 0 ? medianSalary / salaryPerSecond : 0;
-          const isExpanded = expandedIndex === i;
+      {/* Sort controls */}
+      <div className="mb-6 flex justify-center">
+        <div className="rate-pill">
+          {(
+            [
+              ["networth", "Net worth"],
+              ["perminute", "$/min"],
+              ["persecond", "$/sec"],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              data-active={sortKey === key ? "true" : undefined}
+              onClick={() => setSortKey(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-          return (
-            <li key={entry.name}>
-              <button
-                type="button"
-                className="group w-full rounded-lg px-3 py-3 text-left transition-colors hover:bg-zinc-50"
-                onClick={() =>
-                  setExpandedIndex(isExpanded ? null : i)
-                }
-                aria-expanded={isExpanded}
-                aria-label={`${entry.name}, net worth ${formatCompact(nw * 1e9)}, ${formatCurrency(Math.round(perMinute))} per minute${isExpanded ? "; details expanded" : ""}`}
-              >
-                <div className="flex items-baseline justify-between gap-4">
-                  <div className="flex items-baseline gap-3 min-w-0">
-                    <span className="font-mono text-xs tabular-nums text-zinc-400 w-5 shrink-0">
-                      {i + 1}
-                    </span>
-                    <span className="text-zinc-800 truncate">{entry.name}</span>
-                  </div>
-                  <div className="flex items-baseline gap-4 shrink-0">
-                    <span className="font-mono text-sm tabular-nums text-zinc-500">
-                      {formatCompact(nw * 1e9)}
-                    </span>
-                    <span className="font-mono text-sm font-semibold tabular-nums text-zinc-900">
-                      {formatCurrency(Math.round(perMinute))}/min
-                    </span>
-                  </div>
-                </div>
+      <div className="overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-sm">
+        <ol>
+          {sorted.map(
+            ({ entry, nw, perMinute, perSecond, salarySeconds, sharePercent }, i) => {
+              const salaryLabel =
+                salarySeconds < 60
+                  ? `${Math.round(salarySeconds)}s`
+                  : `${(salarySeconds / 60).toFixed(1)}m`;
+              const metricValue =
+                sortKey === "networth"
+                  ? formatCompact(nw * 1e9)
+                  : sortKey === "persecond"
+                    ? `${formatCurrency(Math.round(perSecond))}/sec`
+                    : `${formatCurrency(Math.round(perMinute))}/min`;
+              const metricDetail =
+                sortKey === "networth"
+                  ? `${sharePercent.toFixed(1)}% of top 10 wealth`
+                  : `Salary in ${salaryLabel}`;
 
-                {/* Proportion bar */}
-                <div className="mt-2 ml-8">
-                  <div className="h-1.5 w-full rounded-full bg-zinc-100">
-                    <div
-                      className="h-1.5 rounded-full bg-zinc-900 transition-all duration-500"
-                      style={{ width: `${sharePercent}%` }}
+              return (
+                <li
+                  key={entry.name}
+                  className={`flex items-center gap-3 px-4 py-4 transition-colors hover:bg-zinc-50 sm:gap-4 sm:px-5 ${
+                    i > 0 ? "border-t border-zinc-50" : ""
+                  }`}
+                >
+                  {/* Rank */}
+                  <span className="w-6 shrink-0 font-mono text-xs tabular-nums text-zinc-400 text-right">
+                    {i + 1}
+                  </span>
+
+                  {/* Avatar */}
+                  {entry.imageUrl ? (
+                    <img
+                      src={entry.imageUrl}
+                      alt=""
+                      className="h-10 w-10 shrink-0 rounded-full bg-zinc-100 object-cover"
+                      loading="lazy"
                     />
-                  </div>
-                </div>
+                  ) : (
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-semibold text-zinc-400">
+                      {entry.name
+                        .split(" ")
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)}
+                    </div>
+                  )}
 
-                {/* Expanded detail */}
-                {isExpanded && (
-                  <div className="mt-3 ml-8 grid grid-cols-2 gap-3 rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-sm sm:grid-cols-3">
-                    <div>
-                      <p className="text-xs text-zinc-400">Per second</p>
-                      <p className="font-mono tabular-nums text-zinc-900">
-                        {formatCurrency(Math.round(salaryPerSecond))}
+                  {/* Name + org */}
+                  <div className="min-w-0 flex-1">
+                    {entry.slug ? (
+                      <Link
+                        href={`/billionaires/${entry.slug}`}
+                        className="block truncate text-sm font-medium text-zinc-900 hover:underline"
+                      >
+                        {entry.name}
+                      </Link>
+                    ) : (
+                      <span className="block truncate text-sm font-medium text-zinc-900">
+                        {entry.name}
+                      </span>
+                    )}
+                    {entry.organization && (
+                      <p className="truncate text-xs text-zinc-400">
+                        {entry.organization}
                       </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-zinc-400">Per minute</p>
-                      <p className="font-mono tabular-nums text-zinc-900">
-                        {formatCurrency(Math.round(perMinute))}
-                      </p>
-                    </div>
-                    <div className="col-span-2 sm:col-span-1">
-                      <p className="text-xs text-zinc-400">
-                        Earns your salary every
-                      </p>
-                      <p className="font-mono tabular-nums text-zinc-900">
-                        {salarySeconds < 60
-                          ? `${Math.round(salarySeconds)}s`
-                          : `${(salarySeconds / 60).toFixed(1)} min`}
-                      </p>
+                    )}
+
+                    {/* Proportion bar */}
+                    <div className="mt-1.5 h-1 w-full rounded-full bg-zinc-100">
+                      <div
+                        className="h-1 rounded-full transition-all duration-500"
+                        style={{
+                          width: `${sharePercent}%`,
+                          background:
+                            "linear-gradient(90deg, #2563eb, #3b82f6)",
+                        }}
+                      />
                     </div>
                   </div>
-                )}
-              </button>
-            </li>
-          );
-        })}
-      </ol>
+
+                  {/* Stats */}
+                  <div className="shrink-0 text-right">
+                    <p className="font-mono text-sm font-semibold tabular-nums text-zinc-900">
+                      {metricValue}
+                    </p>
+                    <p className="text-[10px] text-zinc-400">
+                      {metricDetail}
+                    </p>
+                  </div>
+                </li>
+              );
+            }
+          )}
+        </ol>
+      </div>
+
+      <div className="mt-8 text-center">
+        <Link
+          href="/billionaires"
+          className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition-all hover:bg-zinc-50 hover:shadow-md"
+        >
+          View all billionaires &rarr;
+        </Link>
+      </div>
     </section>
   );
 }
