@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import type { BillionaireEntry } from "@/data/billionaires.types";
+import { useLocale } from "@/contexts/LocaleContext";
 import {
   combinedPassiveIncomePerSecond,
   accumulatedFromRate,
@@ -38,7 +39,13 @@ export default function Accumulator({
   returnRate = DEFAULT_RETURN_RATE,
   onSessionUpdate,
 }: AccumulatorProps) {
+  const { locale } = useLocale();
   const rate = combinedPassiveIncomePerSecond(entries, returnRate);
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
+  const toLocal = locale.exchangeRateFromUsd;
 
   const [mainTotal, setMainTotal] = useState(0);
   const [sinceArrived, setSinceArrived] = useState(0);
@@ -144,11 +151,11 @@ export default function Accumulator({
       {/* Main Accumulator — the one dominant number */}
       <div className="mb-4" aria-live="polite" aria-atomic="true">
         <span
-          className="text-gradient-hero block font-mono text-5xl font-bold tracking-tight tabular-nums sm:text-7xl lg:text-[6.5rem]"
+          className="numeric text-gradient-hero block text-5xl font-bold tracking-tight sm:text-7xl lg:text-[6.5rem]"
           role="status"
           aria-label="Combined passive income since data date"
         >
-          {formatCurrency(mainTotal)}
+          {formatCurrency(mainTotal * toLocal, formatOpts)}
         </span>
       </div>
 
@@ -167,11 +174,11 @@ export default function Accumulator({
         <span className="live-dot" aria-hidden="true" />
         <span className="text-sm text-slate-400">Since you arrived</span>
         <span
-          className="font-mono text-lg font-semibold tabular-nums text-emerald-400 sm:text-xl"
+          className="numeric text-lg font-semibold text-emerald-400 sm:text-xl"
           role="status"
           aria-label="Passive income accumulated since you opened this page"
         >
-          {formatCurrency(sinceArrived)}
+          {formatCurrency(sinceArrived * toLocal, formatOpts)}
         </span>
       </div>
     </div>

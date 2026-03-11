@@ -2,25 +2,18 @@
 
 import { useState, useMemo, useCallback } from "react";
 import type { BillionaireEntry } from "@/data/billionaires.types";
+import { useLocale } from "@/contexts/LocaleContext";
+import { getMedianSalaryFromLocale } from "@/lib/locale";
 import { combinedPassiveIncomePerSecond } from "@/lib/passive-income-calc";
 import { DEFAULT_RETURN_RATE } from "@/lib/constants";
-import { formatCurrency, formatNumber, formatDuration } from "@/lib/format-currency";
+import { formatCurrency, formatNumber } from "@/lib/format-currency";
 import { useScrollReveal } from "@/lib/useScrollReveal";
 import { useCountUp } from "@/lib/useCountUp";
 
 interface SalaryCalculatorProps {
   entries: BillionaireEntry[];
   returnRate?: number;
-  medianSalary?: number;
 }
-
-/** Quick presets for salary input */
-const PRESETS = [
-  { label: "Minimum wage", value: 15_080, note: "$7.25/hr" },
-  { label: "Median US", value: 59_384, note: "Census" },
-  { label: "Software engineer", value: 130_000, note: "avg" },
-  { label: "Doctor", value: 260_000, note: "avg" },
-] as const;
 
 function formatTimeToEarn(seconds: number): string {
   if (seconds < 1) return "less than a second";
@@ -44,15 +37,22 @@ function formatTimeToEarn(seconds: number): string {
 export default function SalaryCalculator({
   entries,
   returnRate = DEFAULT_RETURN_RATE,
-  medianSalary = 59_384,
 }: SalaryCalculatorProps) {
+  const { locale } = useLocale();
   const sectionRef = useScrollReveal<HTMLElement>();
+  const medianSalary = getMedianSalaryFromLocale(locale);
   const [salary, setSalary] = useState(medianSalary);
   const [inputValue, setInputValue] = useState(
-    medianSalary.toLocaleString("en-US")
+    medianSalary > 0 ? medianSalary.toLocaleString(locale.numberLocale) : ""
   );
 
-  const perSecond = combinedPassiveIncomePerSecond(entries, returnRate);
+  const perSecondUsd = combinedPassiveIncomePerSecond(entries, returnRate);
+  const perSecond = perSecondUsd * locale.exchangeRateFromUsd;
+
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
 
   const stats = useMemo(() => {
     if (perSecond <= 0 || salary <= 0) {
@@ -83,11 +83,10 @@ export default function SalaryCalculator({
     };
   }, [perSecond, salary]);
 
-  // Count-up for the "years of salary" stat
   const [yearsRef, yearsDisplay] = useCountUp<HTMLParagraphElement>({
     end: stats.yearsOfSalary,
     duration: 1200,
-    formatter: (v) => formatNumber(Math.round(v)),
+    formatter: (v) => formatNumber(Math.round(v), formatOpts),
   });
 
   const handleInputChange = useCallback(
@@ -101,18 +100,21 @@ export default function SalaryCalculator({
         return;
       }
 
-      setInputValue(num.toLocaleString("en-US"));
+      setInputValue(num.toLocaleString(locale.numberLocale));
       if (!isNaN(num) && num > 0) {
         setSalary(num);
       }
     },
-    []
+    [locale.numberLocale]
   );
 
-  const handlePreset = useCallback((value: number) => {
-    setSalary(value);
-    setInputValue(value.toLocaleString("en-US"));
-  }, []);
+  const handlePreset = useCallback(
+    (value: number) => {
+      setSalary(value);
+      setInputValue(value.toLocaleString(locale.numberLocale));
+    },
+    [locale.numberLocale]
+  );
 
   return (
     <section
@@ -140,7 +142,7 @@ export default function SalaryCalculator({
 
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-zinc-400">
-              $
+              {locale.currencySymbol}
             </span>
             <input
               id="salary-input"
@@ -148,19 +150,19 @@ export default function SalaryCalculator({
               inputMode="numeric"
               value={inputValue}
               onChange={handleInputChange}
-              className="w-full rounded-2xl border border-zinc-200 bg-white py-4 pl-9 pr-4 font-mono text-2xl font-bold tabular-nums text-zinc-900 shadow-sm outline-none transition-shadow focus:border-blue-300 focus:ring-2 focus:ring-blue-100 sm:text-3xl"
-              placeholder="59,384"
+              className="numeric w-full rounded-2xl border border-zinc-200 bg-white py-4 pl-9 pr-4 text-2xl font-bold text-zinc-900 shadow-sm outline-none transition-shadow focus:border-blue-300 focus:ring-2 focus:ring-blue-100 sm:text-3xl"
+              placeholder={medianSalary > 0 ? medianSalary.toLocaleString(locale.numberLocale) : ""}
               aria-describedby="salary-description"
             />
           </div>
 
           <p id="salary-description" className="sr-only">
-            Enter your annual salary in US dollars to see comparisons
+            Enter your annual salary in {locale.currency} to see comparisons
           </p>
 
           {/* Presets */}
           <div className="mt-4 flex flex-wrap gap-2">
-            {PRESETS.map((preset) => (
+            {locale.salaryPresets.map((preset) => (
               <button
                 key={preset.label}
                 type="button"
@@ -188,7 +190,7 @@ export default function SalaryCalculator({
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">
                 They passively earn your salary in
               </p>
-              <p className="mt-3 font-mono text-4xl font-bold tabular-nums text-blue-900 sm:text-5xl">
+              <p className="numeric mt-3 text-4xl font-bold text-blue-900 sm:text-5xl">
                 {stats.timeToEarnLabel}
               </p>
               <p className="mt-2 text-sm text-blue-600/60">
@@ -204,7 +206,7 @@ export default function SalaryCalculator({
                 </p>
                 <p
                   ref={yearsRef}
-                  className="mt-2 font-mono text-2xl font-bold tabular-nums text-zinc-900 sm:text-3xl"
+                  className="numeric mt-2 text-2xl font-bold text-zinc-900 sm:text-3xl"
                 >
                   {yearsDisplay}
                 </p>
@@ -217,8 +219,8 @@ export default function SalaryCalculator({
                 <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-zinc-400">
                   Daily earning multiple
                 </p>
-                <p className="mt-2 font-mono text-2xl font-bold tabular-nums text-zinc-900 sm:text-3xl">
-                  {formatNumber(stats.dailyMultiple)}&times;
+                <p className="numeric mt-2 text-2xl font-bold text-zinc-900 sm:text-3xl">
+                  {formatNumber(stats.dailyMultiple, formatOpts)}&times;
                 </p>
                 <p className="mt-1 text-[10px] text-zinc-400">
                   your daily pay
@@ -231,22 +233,18 @@ export default function SalaryCalculator({
               <p className="font-editorial text-sm italic leading-relaxed text-zinc-600">
                 In the time it takes you to earn{" "}
                 <span className="font-semibold text-zinc-800">
-                  {formatCurrency(salary)}
+                  {formatCurrency(salary, formatOpts)}
                 </span>
                 , these 10 people passively accumulate{" "}
                 <span className="font-semibold text-zinc-800">
                   {formatCurrency(
-                    Math.round(
-                      perSecond *
-                        365 *
-                        24 *
-                        3600
-                    )
+                    Math.round(perSecond * 365 * 24 * 3600),
+                    formatOpts
                   )}
                 </span>
                 . That&rsquo;s{" "}
                 <span className="font-semibold text-blue-700">
-                  {formatNumber(stats.yearsOfSalary)} years
+                  {formatNumber(stats.yearsOfSalary, formatOpts)} years
                 </span>{" "}
                 of your work — every single year, without lifting a finger.
               </p>

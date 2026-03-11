@@ -1,9 +1,10 @@
 "use client";
 
 import type { BillionaireEntry } from "@/data/billionaires.types";
+import { useLocale } from "@/contexts/LocaleContext";
 import { combinedPassiveIncomePerSecond } from "@/lib/passive-income-calc";
 import { DEFAULT_RETURN_RATE } from "@/lib/constants";
-import { formatCurrency } from "@/lib/format-currency";
+import { formatCurrency, type FormatLocaleOptions } from "@/lib/format-currency";
 import { useScrollReveal } from "@/lib/useScrollReveal";
 import { useCountUp } from "@/lib/useCountUp";
 
@@ -20,18 +21,20 @@ function RateCard({
   unit,
   context,
   index,
+  formatOpts,
 }: {
   rawValue: number;
   unit: string;
   context: string;
   index: number;
+  formatOpts: FormatLocaleOptions;
 }) {
-  const targetDisplay = formatCurrency(Math.round(rawValue));
+  const targetDisplay = formatCurrency(Math.round(rawValue), formatOpts);
   const isLongValue = targetDisplay.length >= 11;
   const [ref, display] = useCountUp<HTMLParagraphElement>({
     end: rawValue,
     duration: 1400,
-    formatter: (v) => formatCurrency(Math.round(v)),
+    formatter: (v) => formatCurrency(Math.round(v), formatOpts),
   });
 
   return (
@@ -41,7 +44,7 @@ function RateCard({
     >
       <p
         ref={ref}
-        className={`inline-flex items-center justify-center whitespace-nowrap font-mono font-bold leading-none tabular-nums text-zinc-900 ${
+        className={`numeric inline-flex items-center justify-center whitespace-nowrap font-bold leading-none text-zinc-900 ${
           isLongValue
             ? "text-[clamp(1.45rem,2.4vw,1.9rem)] tracking-[-0.05em]"
             : "text-[clamp(1.7rem,4vw,2.25rem)] tracking-tight"
@@ -64,24 +67,32 @@ export default function ContextStrip({
   ytdTotal = 0,
   returnRate = DEFAULT_RETURN_RATE,
 }: ContextStripProps) {
+  const { locale } = useLocale();
   const sectionRef = useScrollReveal<HTMLElement>();
-  const perSecond = combinedPassiveIncomePerSecond(entries, returnRate);
-  const perMinute = perSecond * 60;
-  const perHour = perMinute * 60;
+  const perSecondUsd = combinedPassiveIncomePerSecond(entries, returnRate);
+  const rate = locale.exchangeRateFromUsd;
+  const perSecond = Math.round(perSecondUsd * rate);
+  const perMinute = Math.round(perSecondUsd * 60 * rate);
+  const perHour = Math.round(perSecondUsd * 3600 * rate);
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
+  const ytdLocal = Math.round(ytdTotal * rate);
 
   const cards = [
     {
-      rawValue: Math.round(perSecond),
+      rawValue: perSecond,
       unit: "every second",
       context: "More than a minimum-wage worker earns in a week.",
     },
     {
-      rawValue: Math.round(perMinute),
+      rawValue: perMinute,
       unit: "every minute",
       context: "A year of median salary. Gone in 60 seconds.",
     },
     {
-      rawValue: Math.round(perHour),
+      rawValue: perHour,
       unit: "every hour",
       context: "More than most surgeons earn in a decade.",
     },
@@ -94,7 +105,7 @@ export default function ContextStrip({
       aria-label="Earning rate breakdown"
       className="reveal py-20 sm:py-32"
     >
-      {ytdTotal > 0 && (
+      {ytdLocal > 0 && (
         <div
           role="region"
           aria-label="Year-to-date cumulative total"
@@ -103,10 +114,10 @@ export default function ContextStrip({
           <p className="section-kicker mb-3">So far this year</p>
           <div className="glass-panel mx-auto max-w-lg rounded-3xl px-6 py-5">
             <p
-              className="font-mono text-2xl font-bold tabular-nums text-zinc-900 sm:text-3xl"
+              className="numeric text-2xl font-bold text-zinc-900 sm:text-3xl"
               role="status"
             >
-              {formatCurrency(ytdTotal)}
+              {formatCurrency(ytdLocal, formatOpts)}
             </p>
           </div>
         </div>
@@ -127,6 +138,7 @@ export default function ContextStrip({
             unit={card.unit}
             context={card.context}
             index={i}
+            formatOpts={formatOpts}
           />
         ))}
       </div>

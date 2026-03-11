@@ -13,6 +13,7 @@
     "update-data": "tsx scripts/update-data.ts",
     "scrape-sources": "tsx scripts/scrape-sources.ts",
     "scrape-sources:headed": "tsx scripts/scrape-sources.ts --headed",
+    "scrape-sources:firecrawl": "tsx scripts/scrape-sources-firecrawl.ts",
     "data:sync": "tsx scripts/data-sync.ts",
     "build:ci": "(npm run data:sync || echo 'Sync failed or skipped; building with committed data.') && npm run build",
     "deploy": "npm run build && bash scripts/pages-deploy.sh",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "firecrawl-cli": "^1.4.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

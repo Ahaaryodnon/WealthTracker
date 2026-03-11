@@ -40,7 +40,7 @@ export default async function BillionaireProfilePage({ params }: PageProps) {
   const entry = findBySlug(slug);
   if (!entry) notFound();
 
-  const { entries, medianSalary, dataAsOf } = wealthTrackerData;
+  const { entries, dataAsOf } = wealthTrackerData;
   const idx = entries.findIndex((e) => e.slug === slug);
   const prev = idx > 0 ? entries[idx - 1] : null;
   const next = idx < entries.length - 1 ? entries[idx + 1] : null;
@@ -51,7 +51,7 @@ export default async function BillionaireProfilePage({ params }: PageProps) {
 
       <div className="space-y-6 py-8">
         <IndividualAccumulator entry={entry} dataAsOf={dataAsOf} />
-        <WealthContext entry={entry} medianSalary={medianSalary} />
+        <WealthContext entry={entry} />
         <Biography entry={entry} />
       </div>
 

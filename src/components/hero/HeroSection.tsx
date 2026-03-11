@@ -1,14 +1,15 @@
 import Accumulator from "./Accumulator";
 import HeroContextLine from "./HeroContextLine";
 import EarningsParticles from "./EarningsParticles";
-import { DEFAULT_RETURN_RATE, COMPARISONS } from "@/lib/constants";
+import { useLocale } from "@/contexts/LocaleContext";
+import { DEFAULT_RETURN_RATE } from "@/lib/constants";
 import { formatDataAsOf } from "@/lib/format-date";
+import { formatCompact } from "@/lib/format-currency";
 import { combinedPassiveIncomePerSecond } from "@/lib/passive-income-calc";
 import type { BillionaireEntry } from "@/data/billionaires.types";
 
 interface HeroSectionProps {
   entries: BillionaireEntry[];
-  medianSalary: number;
   dataAsOf: string;
   returnRate?: number;
   onSessionUpdate?: (
@@ -21,38 +22,41 @@ interface HeroSectionProps {
 
 export default function HeroSection({
   entries,
-  medianSalary,
   dataAsOf,
   returnRate = DEFAULT_RETURN_RATE,
   onSessionUpdate,
 }: HeroSectionProps) {
+  const { locale } = useLocale();
   const perSecond = combinedPassiveIncomePerSecond(entries, returnRate);
+  const medianItem = locale.comparisons.find((c) => c.id === "medianSalary");
+  const teacherItem = locale.comparisons.find((c) => c.id === "teacherSalary");
+  const medianSalary = medianItem?.value ?? 0;
 
-  // Pre-compute contextual facts for the rotating line
   const facts: string[] = [];
-  if (perSecond > 0 && medianSalary > 0) {
+  if (perSecond > 0 && medianSalary > 0 && medianItem) {
     const secsForSalary = medianSalary / perSecond;
     if (secsForSalary < 60) {
       facts.push(
-        `A median US salary — earned every ${Math.round(secsForSalary)} seconds.`
+        `A ${medianItem.label.toLowerCase()} — earned every ${Math.round(secsForSalary)} seconds.`
       );
     } else {
       facts.push(
-        `A median US salary — earned every ${(secsForSalary / 60).toFixed(1)} minutes.`
+        `A ${medianItem.label.toLowerCase()} — earned every ${(secsForSalary / 60).toFixed(1)} minutes.`
       );
     }
   }
-  const teacherSalary = COMPARISONS.find((c) => c.label.includes("Teacher"));
-  if (perSecond > 0 && teacherSalary) {
-    const secsForTeacher = teacherSalary.value / perSecond;
+  if (perSecond > 0 && teacherItem) {
+    const secsForTeacher = teacherItem.value / perSecond;
     facts.push(
       `A teacher's annual salary — every ${Math.round(secsForTeacher)} seconds.`
     );
   }
   if (perSecond > 0) {
-    const perHour = perSecond * 3600;
+    const perHourUsd = perSecond * 3600;
+    const perHourLocal = perHourUsd * locale.exchangeRateFromUsd;
+    const opts = { numberLocale: locale.numberLocale, currency: locale.currency };
     facts.push(
-      `$${Math.round(perHour / 1e6)}M every hour. Without lifting a finger.`
+      `${formatCompact(perHourLocal, opts)} every hour. Without lifting a finger.`
     );
   }
 
@@ -104,7 +108,7 @@ export default function HeroSection({
 
       {/* Source line */}
       <p className="mt-8 text-xs text-slate-500">
-        Data as of {formatDataAsOf(dataAsOf) || "—"} &middot;{" "}
+        Data as of {formatDataAsOf(dataAsOf, locale.dateLocale) || "—"} &middot;{" "}
         {Math.round(returnRate * 100)}% annual return assumption &middot;
         Forbes Real-Time Billionaires &middot;{" "}
         <a

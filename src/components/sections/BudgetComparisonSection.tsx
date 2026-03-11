@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import type { BillionaireEntry } from "@/data/billionaires.types";
+import { useLocale } from "@/contexts/LocaleContext";
 import { combinedPassiveIncomePerSecond } from "@/lib/passive-income-calc";
-import { DEFAULT_RETURN_RATE, BUDGET_ITEMS } from "@/lib/constants";
+import { DEFAULT_RETURN_RATE } from "@/lib/constants";
 import { formatCompact, formatNumber } from "@/lib/format-currency";
 import { useScrollReveal } from "@/lib/useScrollReveal";
 
@@ -18,35 +19,42 @@ export default function BudgetComparisonSection({
   entries,
   returnRate = DEFAULT_RETURN_RATE,
 }: BudgetComparisonSectionProps) {
+  const { locale } = useLocale();
   const [viewMode, setViewMode] = useState<ViewMode>("income");
   const sectionRef = useScrollReveal<HTMLElement>();
 
   const perSecond = combinedPassiveIncomePerSecond(entries, returnRate);
-  const annualPassiveIncome = perSecond * 365 * 24 * 3600;
-  const combinedNetWorth =
+  const annualPassiveIncomeUsd = perSecond * 365 * 24 * 3600;
+  const combinedNetWorthUsd =
     entries.reduce((sum, e) => sum + (e.netWorth ?? 0), 0) * 1e9;
 
-  const baseAmount =
-    viewMode === "income" ? annualPassiveIncome : combinedNetWorth;
+  const baseAmountUsd =
+    viewMode === "income" ? annualPassiveIncomeUsd : combinedNetWorthUsd;
+  const baseAmount = baseAmountUsd * locale.exchangeRateFromUsd;
   const baseLabel =
     viewMode === "income" ? "annual passive income" : "combined net worth";
 
-  // Sort by years fundable (descending) so most impactful comes first
+  const budgetItems = locale.budgetItems;
+
   const sortedItems = useMemo(
     () =>
-      [...BUDGET_ITEMS].sort(
+      [...budgetItems].sort(
         (a, b) => baseAmount / a.annualCost - (baseAmount / b.annualCost)
       ).reverse(),
-    [baseAmount]
+    [baseAmount, budgetItems]
   );
 
-  // Combined metric: how many of ALL items could be funded simultaneously
-  const totalAnnualCost = BUDGET_ITEMS.reduce((s, i) => s + i.annualCost, 0);
+  const totalAnnualCost = budgetItems.reduce((s, i) => s + i.annualCost, 0);
   const combinedCoveragePercent = Math.min(
     (baseAmount / totalAnnualCost) * 100,
     100
   );
   const combinedYears = baseAmount / totalAnnualCost;
+
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
 
   return (
     <section
@@ -60,7 +68,7 @@ export default function BudgetComparisonSection({
       <p className="section-lead mb-6 text-center text-sm sm:text-base">
         Their {baseLabel}:{" "}
         <span className="font-semibold tabular-nums text-zinc-700">
-          {formatCompact(baseAmount)}
+          {formatCompact(baseAmount, formatOpts)}
         </span>
       </p>
 
@@ -87,16 +95,16 @@ export default function BudgetComparisonSection({
         <div className="mb-3 flex items-baseline justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
-              All {BUDGET_ITEMS.length} programmes combined
+              All {budgetItems.length} programmes combined
             </p>
             <p className="mt-1 text-sm text-zinc-500">
               Total annual cost:{" "}
-              <span className="font-mono font-semibold tabular-nums text-zinc-700">
-                {formatCompact(totalAnnualCost)}
+              <span className="numeric font-semibold text-zinc-700">
+                {formatCompact(totalAnnualCost, formatOpts)}
               </span>
             </p>
           </div>
-          <p className="font-mono text-xl font-bold tabular-nums text-emerald-700 sm:text-2xl">
+          <p className="numeric text-xl font-bold text-emerald-700 sm:text-2xl">
             {combinedYears >= 1
               ? `${combinedYears.toFixed(1)} yrs`
               : `${combinedCoveragePercent.toFixed(0)}%`}
@@ -130,7 +138,7 @@ export default function BudgetComparisonSection({
 
           return (
             <div
-              key={item.label}
+              key={item.id}
               className="rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm sm:p-5"
             >
               <div className="mb-3 flex items-start justify-between gap-3">
@@ -147,20 +155,20 @@ export default function BudgetComparisonSection({
                     {item.description}
                   </p>
                 </div>
-                <div className="shrink-0 text-right">
+                  <div className="shrink-0 text-right">
                   {canFullyFund ? (
-                    <p className="font-mono text-lg font-bold tabular-nums text-emerald-700">
+                    <p className="numeric text-lg font-bold text-emerald-700">
                       {yearsCanFund >= 10
-                        ? `${formatNumber(Math.round(yearsCanFund))} yrs`
+                        ? `${formatNumber(Math.round(yearsCanFund), formatOpts)} yrs`
                         : `${yearsCanFund.toFixed(1)} yrs`}
                     </p>
                   ) : (
-                    <p className="font-mono text-lg font-bold tabular-nums text-amber-600">
+                    <p className="numeric text-lg font-bold text-amber-600">
                       {percentOfBudget.toFixed(0)}%
                     </p>
                   )}
                   <p className="text-[10px] text-zinc-400">
-                    {formatCompact(item.annualCost)}/yr
+                    {formatCompact(item.annualCost, formatOpts)}/yr
                   </p>
                 </div>
               </div>
@@ -185,7 +193,9 @@ export default function BudgetComparisonSection({
       </div>
 
       <p className="mt-8 text-center text-xs text-zinc-400">
-        Budget figures are approximate annual US federal allocations.
+        {locale.id === "en-GB"
+          ? "Budget figures are approximate UK public spending."
+          : "Budget figures are approximate annual US federal allocations."}
         {viewMode === "income"
           ? ` Passive income assumes a ${Math.round(returnRate * 100)}% annual return.`
           : " Net worth is not liquid; this is illustrative."}

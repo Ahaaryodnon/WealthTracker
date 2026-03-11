@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { useLocale } from "@/contexts/LocaleContext";
+import { getMedianSalaryFromLocale } from "@/lib/locale";
 import { formatCurrency, formatDuration, formatNumber } from "@/lib/format-currency";
 import { useScrollReveal } from "@/lib/useScrollReveal";
 
 interface ShareSectionProps {
   sinceArrived: number;
   elapsedSeconds: number;
-  medianSalary?: number;
 }
 
 function getShareUrl(): string {
@@ -18,21 +19,30 @@ function getShareUrl(): string {
 export default function ShareSection({
   sinceArrived,
   elapsedSeconds,
-  medianSalary = 59_384,
 }: ShareSectionProps) {
+  const { locale } = useLocale();
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const sectionRef = useScrollReveal<HTMLElement>();
 
+  const medianSalary = getMedianSalaryFromLocale(locale);
+  const sinceArrivedLocal = sinceArrived * locale.exchangeRateFromUsd;
   const salaryMultiple =
-    sinceArrived > 0 && medianSalary > 0
-      ? Math.floor(sinceArrived / medianSalary)
+    sinceArrivedLocal > 0 && medianSalary > 0
+      ? Math.floor(sinceArrivedLocal / medianSalary)
       : 0;
+
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
+  const salaryLabel =
+    locale.id === "en-GB" ? "median UK salary" : "median US salary";
 
   const shareText =
     sinceArrived > 0
-      ? `I spent ${formatDuration(elapsedSeconds)} reading about wealth inequality. In that time, 10 people earned ${formatCurrency(Math.round(sinceArrived))} in passive income${salaryMultiple > 0 ? ` — ${formatNumber(salaryMultiple)} years of the average American salary` : ""}. See for yourself:`
+      ? `I spent ${formatDuration(elapsedSeconds)} reading about wealth inequality. In that time, 10 people earned ${formatCurrency(Math.round(sinceArrivedLocal), formatOpts)} in passive income${salaryMultiple > 0 ? ` — ${formatNumber(salaryMultiple, formatOpts)} years of the ${salaryLabel}` : ""}. See for yourself:`
       : "The 10 richest people earn more passively in seconds than most earn in a year. See for yourself:";
 
   const handleCopy = useCallback(async (text?: string, url?: string) => {
@@ -109,16 +119,16 @@ export default function ShareSection({
               <p className="mt-4 text-sm text-slate-400">
                 In that time, the 10 richest people earned
               </p>
-              <p className="mt-2 font-mono text-4xl font-bold tabular-nums text-white sm:text-5xl">
-                {formatCurrency(Math.round(sinceArrived))}
+              <p className="numeric mt-2 text-4xl font-bold text-white sm:text-5xl">
+                {formatCurrency(Math.round(sinceArrivedLocal), formatOpts)}
               </p>
               {salaryMultiple > 0 && (
                 <p className="mt-3 text-sm text-slate-400">
                   That&rsquo;s{" "}
                   <span className="font-semibold text-amber-400">
-                    {formatNumber(salaryMultiple)} year{salaryMultiple !== 1 ? "s" : ""}
+                    {formatNumber(salaryMultiple, formatOpts)} year{salaryMultiple !== 1 ? "s" : ""}
                   </span>{" "}
-                  of median US salary.
+                  of {salaryLabel}.
                 </p>
               )}
             </>
@@ -128,7 +138,7 @@ export default function ShareSection({
                 The 10 richest people earn more passively in seconds
                 than most earn in a year.
               </p>
-              <p className="mt-4 font-mono text-3xl font-bold text-white">
+              <p className="font-editorial mt-4 text-3xl font-semibold text-white">
                 See for yourself.
               </p>
             </>

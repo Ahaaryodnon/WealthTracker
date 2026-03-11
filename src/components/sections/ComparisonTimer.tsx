@@ -113,7 +113,7 @@ export default function ComparisonTimer({
         className="absolute inset-0 flex items-center justify-center"
         aria-hidden="true"
       >
-        <span className="font-mono text-xs font-semibold tabular-nums text-blue-700">
+        <span className="numeric text-xs font-semibold text-blue-700">
           {formattedCountdown}
         </span>
       </div>

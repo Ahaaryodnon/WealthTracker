@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import type { BillionaireEntry } from "@/data/billionaires.types";
+import { useLocale } from "@/contexts/LocaleContext";
 import {
   combinedPassiveIncomePerSecond,
   accumulatedFromRate,
@@ -17,10 +18,17 @@ interface IndividualAccumulatorProps {
 const TICK_MS = 1000 / 60;
 
 export default function IndividualAccumulator({ entry, dataAsOf }: IndividualAccumulatorProps) {
-  const rate = combinedPassiveIncomePerSecond([entry], DEFAULT_RETURN_RATE);
+  const { locale } = useLocale();
+  const rateUsd = combinedPassiveIncomePerSecond([entry], DEFAULT_RETURN_RATE);
+  const toLocal = locale.exchangeRateFromUsd;
+  const rate = rateUsd * toLocal;
   const perMinute = rate * 60;
   const perHour = rate * 3600;
   const perDay = rate * 86400;
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
 
   const [sinceArrived, setSinceArrived] = useState(0);
   const rafRef = useRef<number | null>(null);
@@ -38,7 +46,7 @@ export default function IndividualAccumulator({ entry, dataAsOf }: IndividualAcc
       }
       lastTickRef.current = now;
       const fromSession = (now - sessionStartRef.current) / 1000;
-      setSinceArrived(accumulatedFromRate(rate, fromSession));
+      setSinceArrived(accumulatedFromRate(rateUsd, fromSession) * toLocal);
       rafRef.current = requestAnimationFrame(loop);
     }
 
@@ -46,7 +54,7 @@ export default function IndividualAccumulator({ entry, dataAsOf }: IndividualAcc
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
-  }, [rate, dataAsOf]);
+  }, [rateUsd, dataAsOf, toLocal]);
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-6">
@@ -56,36 +64,36 @@ export default function IndividualAccumulator({ entry, dataAsOf }: IndividualAcc
 
       <div className="mb-4" aria-live="polite">
         <p className="text-xs text-zinc-400 mb-1">Since you arrived</p>
-        <p className="font-mono text-3xl font-bold tabular-nums text-zinc-900 sm:text-4xl">
-          {formatCurrency(sinceArrived)}
+        <p className="numeric text-3xl font-bold text-zinc-900 sm:text-4xl">
+          {formatCurrency(sinceArrived, formatOpts)}
         </p>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div>
           <p className="text-xs text-zinc-400">Per second</p>
-          <p className="font-mono text-sm font-semibold tabular-nums text-zinc-900">
-            {formatCurrency(Math.round(rate))}
+          <p className="numeric text-sm font-semibold text-zinc-900">
+            {formatCurrency(Math.round(rate), formatOpts)}
           </p>
         </div>
         <div>
           <p className="text-xs text-zinc-400">Per minute</p>
-          <p className="font-mono text-sm font-semibold tabular-nums text-zinc-900">
-            {formatCurrency(Math.round(perMinute))}
+          <p className="numeric text-sm font-semibold text-zinc-900">
+            {formatCurrency(Math.round(perMinute), formatOpts)}
           </p>
         </div>
         <div>
           <p className="text-xs text-zinc-400">Per hour</p>
-          <p className="font-mono text-sm font-semibold tabular-nums text-zinc-900">
-            {formatCurrency(Math.round(perHour))}
+          <p className="numeric text-sm font-semibold text-zinc-900">
+            {formatCurrency(Math.round(perHour), formatOpts)}
           </p>
         </div>
       </div>
 
       <div className="mt-3 pt-3 border-t border-zinc-100">
         <p className="text-xs text-zinc-400">Per day</p>
-        <p className="font-mono text-lg font-semibold tabular-nums text-zinc-900">
-          {formatCurrency(Math.round(perDay))}
+        <p className="numeric text-lg font-semibold text-zinc-900">
+          {formatCurrency(Math.round(perDay), formatOpts)}
         </p>
       </div>
     </div>
