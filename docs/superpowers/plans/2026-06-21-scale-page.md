@@ -223,7 +223,8 @@ test("respects topBillionaires count and sorts by net worth", () => {
   const ls = assembleLandmarks({ entries: ENTRIES, comparisons: [], topBillionaires: 2 });
   const bills = ls.filter((l) => l.category === "billionaire");
   assert.equal(bills.length, 2);
-  assert.equal(bills[0].label, "Rich Person"); // richest first by underlying sort
+  // output is sorted ascending by dollars, so the richest selected billionaire is last
+  assert.equal(bills[bills.length - 1].label, "Rich Person");
 });
 
 test("output is sorted ascending by dollars", () => {
@@ -254,7 +255,7 @@ Create `src/lib/scale/scale-landmarks.ts`:
 ```ts
 import type { BillionaireEntry } from "@/data/billionaires.types";
 import type { ComparisonItem } from "@/lib/locale";
-import { BILLION, TRILLION } from "@/lib/scale/scale-math";
+import { MILLION, BILLION, TRILLION } from "@/lib/scale/scale-math";
 
 export type LandmarkCategory = "amount" | "everyday" | "billionaire" | "world";
 
@@ -274,9 +275,9 @@ export interface AssembleOptions {
 }
 
 const AMOUNT_LANDMARKS: Landmark[] = [
-  { id: "amount-million", label: "One million", dollars: 1_000_000, category: "amount" },
-  { id: "amount-billion", label: "One billion", dollars: 1_000_000_000, category: "amount" },
-  { id: "amount-trillion", label: "One trillion", dollars: 1_000_000_000_000, category: "amount" },
+  { id: "amount-million", label: "One million", dollars: MILLION, category: "amount" },
+  { id: "amount-billion", label: "One billion", dollars: BILLION, category: "amount" },
+  { id: "amount-trillion", label: "One trillion", dollars: TRILLION, category: "amount" },
 ];
 
 // Everyday figures that aren't locale-specific in our data.
@@ -292,11 +293,9 @@ const WORLD_STATIC: Landmark[] = [
   { id: "world-us-gdp", label: "US annual GDP", dollars: 29_200_000_000_000, category: "world" },
 ];
 
-// Locale comparison ids we surface near the start of the journey.
-const EVERYDAY_FROM_COMPARISONS: { id: string; label: string }[] = [
-  { id: "medianSalary", label: "Median salary" },
-  { id: "averageHomePrice", label: "Median home price" },
-];
+// Locale comparison ids we surface near the start of the journey. The landmark
+// label comes from the locale's own ComparisonItem.label (single source of truth).
+const EVERYDAY_FROM_COMPARISONS: string[] = ["medianSalary", "averageHomePrice"];
 
 /**
  * Build the full, sorted landmark list from the dataset + active locale.
@@ -305,10 +304,10 @@ const EVERYDAY_FROM_COMPARISONS: { id: string; label: string }[] = [
 export function assembleLandmarks(opts: AssembleOptions): Landmark[] {
   const { entries, comparisons, topBillionaires = 1 } = opts;
 
-  const everydayFromLocale: Landmark[] = EVERYDAY_FROM_COMPARISONS.flatMap((m) => {
-    const c = comparisons.find((x) => x.id === m.id);
+  const everydayFromLocale: Landmark[] = EVERYDAY_FROM_COMPARISONS.flatMap((id) => {
+    const c = comparisons.find((x) => x.id === id);
     if (!c || typeof c.value !== "number") return [];
-    return [{ id: `everyday-${m.id}`, label: m.label, dollars: c.value, category: "everyday" as const }];
+    return [{ id: `everyday-${id}`, label: c.label, dollars: c.value, category: "everyday" as const }];
   });
 
   const billionaires: Landmark[] = [...entries]
@@ -636,18 +635,16 @@ export default function ScaleTrack({ landmarks, cameraDollars, pxPerDollar, view
   const formatOpts = { numberLocale: locale.numberLocale, currency: locale.currency };
   const centerX = viewportWidth / 2;
 
-  const visible = landmarks.filter((l) => {
-    const x = dollarsToX(l.dollars - cameraDollars, pxPerDollar) + centerX;
-    return x >= -RENDER_MARGIN && x <= viewportWidth + RENDER_MARGIN;
-  });
+  const visible = landmarks
+    .map((l) => ({ l, x: dollarsToX(l.dollars - cameraDollars, pxPerDollar) + centerX }))
+    .filter(({ x }) => x >= -RENDER_MARGIN && x <= viewportWidth + RENDER_MARGIN);
 
   return (
     <div className="relative h-64 w-full overflow-hidden border-y border-zinc-200 bg-gradient-to-b from-zinc-50 to-white">
       {/* center baseline */}
       <div className="absolute left-0 top-1/2 h-px w-full bg-zinc-200" aria-hidden="true" />
 
-      {visible.map((l) => {
-        const x = dollarsToX(l.dollars - cameraDollars, pxPerDollar) + centerX;
+      {visible.map(({ l, x }) => {
         const isAmount = l.category === "amount";
         return (
           <div
@@ -751,13 +748,20 @@ export default function ScaleJourney({ entries }: ScaleJourneyProps) {
   const cameraRef = useRef(0);
   const playingRef = useRef(false);
   const speedRef = useRef<ScaleSpeed>("play");
-  cameraRef.current = cameraDollars;
-  playingRef.current = isPlaying;
-  speedRef.current = speed;
+  // Mirror in an effect (not during render) to satisfy react-hooks/refs. No deps
+  // array → runs after every render, keeping the refs current for the rAF loop.
+  useEffect(() => {
+    cameraRef.current = cameraDollars;
+    playingRef.current = isPlaying;
+    speedRef.current = speed;
+  });
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
 
   useEffect(() => {
@@ -1065,8 +1069,9 @@ test.describe("Scale page", () => {
     const before = await odometer.textContent();
 
     await page.getByRole("button", { name: "Play" }).click();
-    await page.waitForTimeout(800);
-    // Pause to freeze the value for comparison
+    // Web-first assertion: retries until the odometer text changes (no fixed sleep).
+    await expect(odometer).not.toHaveText(before ?? "");
+    // Pause to freeze the value for comparison.
     await page.getByRole("button", { name: "Pause" }).click();
     const after = await odometer.textContent();
 
@@ -1118,4 +1123,5 @@ git commit -m "test(scale): add e2e coverage and wire scale unit tests"
 
 - This page is about the abstract magnitudes 1,000,000 / 1,000,000,000 / 1,000,000,000,000 — the *zeros*, not the exchange rate. Landmark `dollars` are therefore treated as **nominal amounts displayed in the active currency symbol** and are NOT multiplied by `locale.exchangeRateFromUsd`. Converting "one million" to £790k would destroy the framing. (This deliberately differs from `ContextStrip`, which converts real benchmark values.) Locale `comparisons` values are used as-is from the active pack; mixing a GBP median-salary landmark with USD-nominal world figures is an accepted minor inconsistency.
 - `PX_PER_DOLLAR`, `BASE_PX_PER_SEC`, and speed multipliers are tuning constants; the *proportions* between landmarks are never altered (strict linear scale), preserving honesty. Adjust the constants if the opening pacing feels too fast or slow.
-- `topBillionaires` is set to 1 (the single richest). Bump to 3 in `ScaleJourney` if the extra flags stay visually uncluttered.
+- `topBillionaires` is set to 1 (the single richest). Bump to 3 in `ScaleJourney` if the extra flags stay visually uncluttered. (Billionaire landmark ids include the array index — `billionaire-${i}-${slug}` — so duplicate slugs cannot collide React keys when this is raised.)
+- Under `prefers-reduced-motion` the camera anchors to the `$1M` flag on mount (there is no travel), so a reduced-motion user lands on a meaningful frame; the minimap, odometer, skip buttons, and scrubber carry the rest.
