@@ -6,6 +6,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { assembleLandmarks, trackEndDollars } from "@/lib/scale/scale-landmarks";
 import { MILLION } from "@/lib/scale/scale-math";
 import { formatCurrency } from "@/lib/format-currency";
+import { ukBillionaires } from "@/data/uk-billionaires";
 import ScaleControls, { type ScaleSpeed } from "@/components/scale/ScaleControls";
 import ScaleMinimap from "@/components/scale/ScaleMinimap";
 import ScaleTrack from "@/components/scale/ScaleTrack";
@@ -22,9 +23,17 @@ export default function ScaleJourney({ entries }: ScaleJourneyProps) {
   const { locale } = useLocale();
   const formatOpts = { numberLocale: locale.numberLocale, currency: locale.currency };
 
+  // UK uses the hand-maintained Rich List; every other locale uses the global dataset.
+  const billionaireEntries = locale.id === "en-GB" ? ukBillionaires : entries;
   const landmarks = useMemo(
-    () => assembleLandmarks({ entries, comparisons: locale.comparisons, topBillionaires: 1 }),
-    [entries, locale]
+    () =>
+      assembleLandmarks({
+        entries: billionaireEntries,
+        comparisons: locale.comparisons,
+        scaleLandmarks: locale.scaleLandmarks,
+        topBillionaires: locale.scaleTopBillionaires,
+      }),
+    [billionaireEntries, locale]
   );
   const trackEnd = useMemo(() => trackEndDollars(landmarks), [landmarks]);
 
