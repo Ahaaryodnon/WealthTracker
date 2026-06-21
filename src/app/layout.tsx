@@ -38,10 +38,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Analytics />
+      </head>
       <body
         className={`${inter.variable} ${playfairDisplay.variable} antialiased`}
       >
-        <Analytics />
         <LocaleProvider>{children}</LocaleProvider>
       </body>
     </html>

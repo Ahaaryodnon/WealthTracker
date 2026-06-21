@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealth, Shown to Scale — US + UK</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --red: #f85149;
+    --green: #3fb950;
+    --gold: #d2991d;
+    --border: #21262d;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(13,17,23,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex; gap: 16px; align-items: center;
+  }
+  header button {
+    background: var(--border); color: var(--text); border: 1px solid #30363d;
+    padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;
+    transition: all 0.2s;
+  }
+  header button.active, header button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .section { padding: 80px 24px 60px; max-width: 820px; margin: 0 auto; display: none; }
+  .section.active { display: block; }
+
+  h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 8px; }
+  h2 { font-size: 1.8rem; font-weight: 700; margin: 48px 0 16px; color: var(--accent); }
+  h3 { font-size: 1.2rem; margin: 32px 0 12px; color: var(--muted); }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .stat-card {
+    background: #161b22; border: 1px solid var(--border); border-radius: 8px; padding: 20px;
+  }
+  .stat-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 1.5rem; font-weight: 700; margin-top: 4px; color: #f0f6fc; }
+  .stat-note { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+  .stat-card.highlight { border-color: var(--gold); background: #1a1a14; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; }
+  tr:hover td { background: rgba(88,166,255,0.04); }
+
+  .scroll-viz {
+    background: #161b22; border: 1px solid var(--border); border-radius: 8px;
+    margin: 32px 0; overflow: hidden; position: relative;
+  }
+  .scroll-bar {
+    display: flex; flex-direction: column; padding: 16px;
+    font-size: 0.75rem; color: var(--muted);
+  }
+  .pixel-block {
+    height: 10px; margin: 1px 0; border-radius: 2px; transition: width 0.3s;
+  }
+  .pb-income { background: #3fb950; }
+  .pb-million { background: #58a6ff; }
+  .pb-billion { background: #d2991d; }
+  .pb-bezos { background: #f85149; }
+  .pb-musk { background: #f85149; }
+
+  .comparison-box {
+    background: #161b22; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 16px 0;
+  }
+  .comparison-box p { margin: 8px 0; }
+
+  .callout {
+    background: rgba(248,81,73,0.08); border-left: 3px solid var(--red); padding: 16px 20px;
+    margin: 24px 0; border-radius: 0 6px 6px 0; font-size: 1.05rem; line-height: 1.7;
+  }
+
+  .footnote { font-size: 0.8rem; color: var(--muted); margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .big-number { font-size: 2.8rem; font-weight: 900; color: var(--gold); display: block; }
+  .label-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  .source { font-size: 0.78rem; color: #484f58; margin-top: 2px; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 8px 16px; margin: 16px 0;
+    color: var(--muted); font-style: italic;
+  }
+
+  .updated-badge {
+    display: inline-block; background: rgba(63,185,80,0.15); color: var(--green);
+    padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;
+    margin-left: 6px; vertical-align: middle;
+  }
+  .old-value { text-decoration: line-through; color: #484f58; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="active" onclick="switchTab('us')">🇺🇸 United States</button>
+  <button onclick="switchTab('uk')">🇬🇧 United Kingdom</button>
+  <button onclick="switchTab('comparison')">📊 Side by Side</button>
+</header>
+
+<!-- ═══════════════════  US SECTION  ═══════════════════ -->
+<div id="us" class="section active">
+  <h1>🇺🇸 US Wealth, Shown to Scale</h1>
+  <p style="color:var(--muted);margin-bottom:32px;">
+    Updated with 2024–2026 data. Original 1-pixel-wealth figures shown <span class="old-value">struck through</span> where outdated.
+  </p>
+
+  <h2>1. The Baseline</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Median Household Income (2024)</div>
+      <div class="stat-value">$83,730</div>
+      <div class="stat-note"><span class="old-value">$63,179</span> — up $20,551 since original site</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Lifetime Earnings (45 yrs × median)</div>
+      <div class="stat-value">$3,767,850</div>
+      <div class="stat-note"><span class="old-value">$1.7M</span> — more than double the old figure</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Poverty Line (family of 4, 2024)</div>
+      <div class="stat-value">$31,812</div>
+      <div class="stat-note"><span class="old-value">~$26,200</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Americans in Poverty (2024)</div>
+      <div class="stat-value">35.9 million</div>
+      <div class="stat-note"><span class="old-value">38M (2019)</span> — poverty rate fell to 10.6%</div>
+    </div>
+  </div>
+
+  <h2>2. The Billionaires</h2>
+  <h3>Top 5 Richest Americans (Forbes 400, Sept 2025)</h3>
+  <table>
+    <tr><th>#</th><th>Name</th><th>Wealth</th><th>Change vs Original Site</th></tr>
+    <tr><td>1</td><td>Elon Musk</td><td><strong>$428 bn</strong></td><td>NEW — wasn't on the original</td></tr>
+    <tr><td>2</td><td>Jeff Bezos</td><td><strong>$224 bn</strong></td><td><span class="old-value">$139 bn</span> → +$85 bn (+61%)</td></tr>
+    <tr><td>3</td><td>Larry Page</td><td><strong>$257 bn</strong></td><td>Forbes 2026 ranking</td></tr>
+    <tr><td>4</td><td>Sergey Brin</td><td><strong>$237 bn</strong></td><td></td></tr>
+    <tr><td>5</td><td>Mark Zuckerberg</td><td><strong>$222 bn</strong></td><td></td></tr>
+  </table>
+
+  <div class="callout">
+    <strong>Musk at $428 billion is over 3× what Bezos was when the original site was made.</strong><br>
+    His wealth grew by <strong>$184 billion in one year</strong> (2024–2025) — more than the entire GDP of Ukraine.
+  </div>
+
+  <h2>3. The Forbes 400</h2>
+  <div class="stat-grid">
+    <div class="stat-card highlight">
+      <div class="stat-label">Forbes 400 Combined Wealth (2025)</div>
+      <div class="stat-value">$6.6 trillion</div>
+      <div class="stat-note"><span class="old-value">$2.96 trillion</span> — more than DOUBLED</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Entry Threshold</div>
+      <div class="stat-value">$3.8 billion</div>
+      <div class="stat-note"><span class="old-value">~$2.1 bn</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">More Than Bottom 60% of Americans</div>
+      <div class="stat-value">Yes — and growing</div>
+      <div class="stat-note">$6.6T vs bottom 60% household wealth</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">US Billionaires (2025)</div>
+      <div class="stat-value">902</div>
+      <div class="stat-note">Per Bloomberg Billionaires Index</div>
+    </div>
+  </div>
+
+  <h2>4. What Could Be Done with a Fraction of the $6.6 Trillion</h2>
+
+  <div class="comparison-box">
+    <p><strong>0.14%</strong> ($9.6 bn) — End homelessness in America</p>
+    <p style="font-size:0.9rem;color:var(--muted);">Provides Housing First placements to every person in a shelter. Source: National Alliance to End Homelessness, 2025.</p>
+  </div>
+
+  <div class="comparison-box">
+    <p><strong>2.6%</strong> (~$170 bn) — Lift every American out of poverty</p>
+    <p style="font-size:0.9rem;color:var(--muted);">One-time cash subsidy to all 35.9 million people below the poverty line. Evidence shows one-time cash transfers permanently improve economic trajectories.</p>
+  </div>
+
+  <div class="comparison-box">
+    <p><strong>3%</strong> (~$200 bn) — Refund federal taxes for all households earning under $80,000</p>
+  </div>
+
+  <div class="comparison-box">
+    <p><strong>6%</strong> (~$400 bn) — Give $10,000 to every American household</p>
+    <p style="font-size:0.9rem;color:var(--muted);">131 million households × $10,000.</p>
+  </div>
+
+  <div class="comparison-box">
+    <p><strong>15%</strong> (~$1 trillion) — Eliminate all US medical debt ($220 bn) + free college tuition for all public universities ($79 bn/year × 10 years)</p>
+  </div>
+
+  <h2>5. The Original Site Was Optimistic</h2>
+  <div class="callout">
+    The original 1-pixel-wealth site called a trillion "an eleventy gajillion zillion."<br>
+    Today, the US has <strong>6.6 of them</strong> concentrated in just 400 people. The scale of inequality has accelerated dramatically.
+  </div>
+
+  <h2>6. CEO to Worker Ratio</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">S&P 500 CEO Average Pay (2024)</div>
+      <div class="stat-value">$16.3 million</div>
+      <div class="stat-note">268× median worker</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Median US Worker Pay</div>
+      <div class="stat-value">$60,580</div>
+      <div class="stat-note">Per AFL-CIO 2024 Executive Paywatch</div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <strong>Sources:</strong> US Census Bureau (Income & Poverty 2024), Forbes 400 (September 2025), Forbes Billionaires 2026, Bloomberg Billionaires Index, National Alliance to End Homelessness (2025), AFL-CIO Executive Paywatch (2024). Original 1-pixel-wealth data from ~2018–2020. Research compiled June 2026.
+  </div>
+</div>
+
+<!-- ═══════════════════  UK SECTION  ═══════════════════ -->
+<div id="uk" class="section">
+  <h1>🇬🇧 UK Wealth, Shown to Scale</h1>
+  <p style="color:var(--muted);margin-bottom:32px;">
+    All-new UK-specific data, structured like the original 1-pixel-wealth format. Sources: ONS, Sunday Times Rich List 2025, Equality Trust.
+  </p>
+
+  <h2>1. The Baseline</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Median Household Disposable Income (FYE 2024)</div>
+      <div class="stat-value">£36,700/yr</div>
+      <div class="stat-note">~$46,800 USD at current exchange rate</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Median Household Wealth (2020–22)</div>
+      <div class="stat-value">£293,700</div>
+      <div class="stat-note">Includes property, pensions, savings, physical assets</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Median Full-Time Worker Salary</div>
+      <div class="stat-value">£34,963</div>
+      <div class="stat-note">2023 figure. UK full-time median.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Lifetime Earnings (45yrs × median)</div>
+      <div class="stat-value">~£1.57 million</div>
+      <div class="stat-note">All the money you will earn in your entire life</div>
+    </div>
+  </div>
+
+  <h2>2. UK's Richest — Sunday Times Rich List 2025</h2>
+  <table>
+    <tr><th>#</th><th>Name</th><th>Wealth</th><th>Source</th></tr>
+    <tr><td>1</td><td>Gopi Hinduja & family</td><td><strong>£35.30 bn</strong></td><td>Hinduja Group conglomerate</td></tr>
+    <tr><td>2</td><td>David & Simon Reuben</td><td><strong>£26.87 bn</strong></td><td>Property & technology</td></tr>
+    <tr><td>3</td><td>Sir Leonard Blavatnik</td><td><strong>£25.73 bn</strong></td><td>Warner Music, investments</td></tr>
+    <tr><td>4</td><td>Sir James Dyson & family</td><td><strong>£20.80 bn</strong></td><td>Dyson appliances, 36,000+ acres farmland</td></tr>
+    <tr><td>5</td><td>Idan Ofer</td><td><strong>£20.12 bn</strong></td><td>Shipping, energy, Atlético Madrid</td></tr>
+    <tr><td>6</td><td>Weston family</td><td><strong>£17.75 bn</strong></td><td>Primark, Associated British Foods</td></tr>
+    <tr><td>7</td><td>Sir Jim Ratcliffe</td><td><strong>£17.05 bn</strong></td><td>Ineos chemicals, Man United stake</td></tr>
+    <tr><td>8</td><td>Lakshmi Mittal & family</td><td><strong>£15.44 bn</strong></td><td>ArcelorMittal steel</td></tr>
+    <tr><td>9</td><td>John Fredriksen & family</td><td><strong>£13.68 bn</strong></td><td>Shipping, oil tankers</td></tr>
+    <tr><td>10</td><td>Bukhman brothers</td><td><strong>£12.54 bn</strong></td><td>Mobile gaming (Playrix)</td></tr>
+  </table>
+
+  <div class="callout">
+    <span class="big-number" style="font-size:2rem;">£35.3 billion</span>
+    The Hinduja family, UK's richest, would need to spend <strong>£96,000 per day for 1,000 years</strong> to exhaust their fortune — without earning a penny in interest.
+  </div>
+
+  <h2>3. The Top 350</h2>
+  <div class="stat-grid">
+    <div class="stat-card highlight">
+      <div class="stat-label">Top 350 Combined Wealth (2025)</div>
+      <div class="stat-value">£772.8 bn</div>
+      <div class="stat-note">3% down vs 2024. But still vast.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">UK Billionaires (2025)</div>
+      <div class="stat-value">156</div>
+      <div class="stat-note">Down from 165 in 2024 — biggest drop in 37 years</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">UK Billionaires 1990</div>
+      <div class="stat-value">15</div>
+      <div class="stat-note">Average billionaire wealth up 1,000%+ since</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top 10 Combined</div>
+      <div class="stat-value">~£205 bn</div>
+      <div class="stat-note">10 families ≈ ⅓ of annual UK govt spending</div>
+    </div>
+  </div>
+
+  <h2>4. Wealth Distribution — The Stark Reality</h2>
+  <div class="stat-grid">
+    <div class="stat-card highlight">
+      <div class="stat-label">Top 10% own</div>
+      <div class="stat-value">43% of all UK wealth</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-label">Bottom 50% own just</div>
+      <div class="stat-value">9% of all UK wealth</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-label">Top 50 Families</div>
+      <div class="stat-value">£466 billion</div>
+      <div class="stat-note">More than the bottom 34.1 million people</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top 1% Average Wealth</div>
+      <div class="stat-value">£5.3 million</div>
+      <div class="stat-note">Per person</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>50 families have more wealth than 34.1 million Britons.</strong><br>
+    Those 50 families could fit in a single London double-decker bus. Their combined wealth equals half the population.
+  </div>
+
+  <h2>5. What Could the Top 350's £772.8 Bn Fund?</h2>
+
+  <div class="comparison-box">
+    <p><strong>0.4%</strong> (£3 bn/yr) — Scrap the two-child benefit cap and lift 550,000 children out of poverty</p>
+    <p style="font-size:0.9rem;color:var(--muted);">The cost of child poverty to the UK economy is £39 billion/year — 13× the cost of scrapping the cap. (CPAG 2023, Save the Children 2026)</p>
+  </div>
+
+  <div class="comparison-box">
+    <p><strong>0.3%</strong> (£2.5 bn/yr) — Universal free school meals for every child in England</p>
+    <p style="font-size:0.9rem;color:var(--muted);">Currently 4.3 million children in food-insecure households (Hansard 2024).</p>
+  </div>
+
+  <div class="comparison-box">
+    <p><strong>1.3%</strong> (£10 bn/yr) — Build 90,000 social homes per year</p>
+    <p style="font-size:0.9rem;color:var(--muted);">1.3 million households on waiting lists. At current build rates: <strong>119-year wait</strong> to clear (Shelter 2024).</p>
+  </div>
+
+  <div class="comparison-box">
+    <p><strong>5%</strong> (£39 bn) — Wipe out the annual economic cost of child poverty</p>
+    <p style="font-size:0.9rem;color:var(--muted);">The drag on the UK economy from child poverty alone — lost productivity, extra public spending — is £39 bn/year.</p>
+  </div>
+
+  <div class="comparison-box">
+    <p><strong>31%</strong> (£242 bn) — Fund the entire NHS for one year</p>
+    <p style="font-size:0.9rem;color:var(--muted);">NHS expenditure 2024/25. The Hinduja family alone could fund it for 53 days.</p>
+  </div>
+
+  <div class="comparison-box">
+    <p><strong>100%</strong> (£772.8 bn) — Run the NHS for <strong>3.2 years</strong>. Or fund the UK's entire defence budget for 14 years. Or give every UK household <strong>£27,600</strong>.</p>
+  </div>
+
+  <h2>6. The Historical Theft</h2>
+  <blockquote>
+    "A 2% annual wealth tax on the Rich List since the mid-1990s would have raised £325 billion — over £11,000 per UK household — and the rich would STILL have got richer." — Dr Benjamin Tippet, King's College London
+  </blockquote>
+
+  <div class="callout">
+    The UK's wealth gap has <strong>grown by 50% in just 8 years</strong>. Most wealth increases have been "passive" (property appreciation), not earned — and the lion's share has gone to those already in the top 10%. (LSE Inequalities, 2024)
+  </div>
+
+  <h2>7. CEO to Worker Ratio</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">FTSE 100 CEO Median Pay (2024)</div>
+      <div class="stat-value">£4.4 million</div>
+      <div class="stat-note">122× median UK worker</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">NHS Band 5 Nurse Salary</div>
+      <div class="stat-value">£33,487</div>
+      <div class="stat-note">FTSE 100 CEO earns this in 3 days</div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <strong>Sources:</strong> ONS Household Income FYE 2024, ONS Wealth & Assets Survey 2020–22, Sunday Times Rich List (May 2025), Equality Trust — Billionaire Britain 2025 & Scale of Economic Inequality, High Pay Centre CEO Pay Report 2024, CPAG — The Cost of Child Poverty 2023, Resolution Foundation — Wealth Check 2024, House of Commons Library CBP-7484 & CBP-10210, Shelter — Social Housing Waiting List Analysis, The Guardian (May 2025). Research compiled June 2026.<br>
+    <strong>Exchange rate:</strong> £1 = ~$1.27 (approximate mid-2026 rate).
+  </div>
+</div>
+
+<!-- ═══════════════════  COMPARISON SECTION  ═══════════════════ -->
+<div id="comparison" class="section">
+  <h1>📊 UK vs US — Side by Side</h1>
+  <p style="color:var(--muted);margin-bottom:32px;">Same story, different countries. The scale is different but the pattern is identical.</p>
+
+  <table>
+    <tr><th>Metric</th><th>🇺🇸 United States</th><th>🇬🇧 United Kingdom</th></tr>
+    <tr>
+      <td>Median household income</td>
+      <td>$83,730 (2024)</td>
+      <td>£36,700 (~$46,800)</td>
+    </tr>
+    <tr>
+      <td>Median household wealth</td>
+      <td>$192,700</td>
+      <td>£293,700 (~$374,000)</td>
+    </tr>
+    <tr>
+      <td>Richest person/family</td>
+      <td>Elon Musk: $428 bn</td>
+      <td>Hinduja family: £35.3 bn</td>
+    </tr>
+    <tr>
+      <td>Number of billionaires</td>
+      <td>902</td>
+      <td>156</td>
+    </tr>
+    <tr>
+      <td>Top list combined wealth</td>
+      <td>$6.6 trillion (Forbes 400)</td>
+      <td>£772.8 bn (Rich List 350)</td>
+    </tr>
+    <tr>
+      <td>Top 10% owns</td>
+      <td>~67% of wealth</td>
+      <td>43% of wealth</td>
+    </tr>
+    <tr>
+      <td>Bottom 50% owns</td>
+      <td>~2.5% of wealth</td>
+      <td>9% of wealth</td>
+    </tr>
+    <tr>
+      <td>Wealth Gini coefficient</td>
+      <td>0.85</td>
+      <td>0.59</td>
+    </tr>
+    <tr>
+      <td>Income Gini coefficient</td>
+      <td>0.41</td>
+      <td>0.33</td>
+    </tr>
+    <tr>
+      <td>CEO-to-worker pay ratio</td>
+      <td>268:1 (S&P 500)</td>
+      <td>122:1 (FTSE 100)</td>
+    </tr>
+    <tr>
+      <td>Cost to end homelessness</td>
+      <td>$9.6 bn/year</td>
+      <td>~£10 bn/yr (social housing)</td>
+    </tr>
+    <tr>
+      <td>Healthcare budget</td>
+      <td>$4.9 trillion (2024)</td>
+      <td>£242 billion (NHS 2024/25)</td>
+    </tr>
+    <tr>
+      <td>Population</td>
+      <td>341 million</td>
+      <td>67 million</td>
+    </tr>
+    <tr>
+      <td>People in poverty</td>
+      <td>35.9 million (10.6%)</td>
+      <td>~14.4 million (22%)</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <strong>Key difference:</strong> US wealth inequality is far more extreme (Forbes 400: $6.6T, bottom 50%: 2.5%). But UK wealth inequality is growing faster — up 50% in just 8 years. Both countries follow the same accelerating trajectory.
+  </div>
+
+  <h2>What the Original Site Got Wrong</h2>
+  <table>
+    <tr><th>Claim on Original Site</th><th>Reality Now</th></tr>
+    <tr><td>Jeff Bezos: $139 billion</td><td>Bezos: $224 bn | Musk: $428 bn | Both far larger</td></tr>
+    <tr><td>Top 400: $2.96 trillion</td><td><strong>$6.6 trillion</strong> — more than doubled</td></tr>
+    <tr><td>Median income: $63,179</td><td>$83,730 — but inflation means purchasing power is similar</td></tr>
+    <tr><td>"A trillion is eleventy gajillion"</td><td>The US now has 6.6 of them in 400 people</td></tr>
+  </table>
+
+  <div class="footnote">
+    <strong>Note:</strong> Direct currency conversions use approximate mid-2026 rate of £1 = $1.27. Purchasing power differences mean direct comparisons should be treated as approximate. US figures from Census Bureau, Forbes 400, Federal Reserve. UK figures from ONS, Sunday Times, Equality Trust.
+  </div>
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('header button').forEach(b => b.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
