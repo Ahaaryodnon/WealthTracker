@@ -8,6 +8,7 @@ import { v } from "convex/values";
  */
 export default defineSchema({
   billionaires: defineTable({
+    id: v.optional(v.string()),
     name: v.string(),
     forbesNetWorth: v.optional(v.number()),
     bloombergNetWorth: v.optional(v.number()),

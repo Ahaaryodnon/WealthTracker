@@ -35,7 +35,6 @@ const COUNT_UP_DURATION_MS = 1500;
 export default function Accumulator({
   entries,
   dataAsOf,
-  medianSalary: _medianSalary,
   returnRate = DEFAULT_RETURN_RATE,
   onSessionUpdate,
 }: AccumulatorProps) {

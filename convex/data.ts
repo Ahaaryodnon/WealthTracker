@@ -6,6 +6,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 const billionaireEntryValidator = v.object({
+  id: v.optional(v.string()),
   name: v.string(),
   forbesNetWorth: v.optional(v.number()),
   bloombergNetWorth: v.optional(v.number()),
@@ -40,6 +41,7 @@ export const replaceCanonicalData = mutation({
 
     for (const entry of data.entries) {
       await ctx.db.insert("billionaires", {
+        id: entry.id,
         name: entry.name,
         forbesNetWorth: entry.forbesNetWorth,
         bloombergNetWorth: entry.bloombergNetWorth,
@@ -60,6 +62,7 @@ export const getCanonicalData = query({
     }
 
     const entries = rows.map((r) => ({
+      id: r.id,
       name: r.name,
       forbesNetWorth: r.forbesNetWorth,
       bloombergNetWorth: r.bloombergNetWorth,

@@ -14,6 +14,8 @@ export interface BillionaireEntry {
   forbesNetWorth?: number | null;
   /** Bloomberg-reported net worth; null when unavailable. */
   bloombergNetWorth?: number | null;
+  /** Stable identifier from Forbes/rtb-api (e.g. "elon-musk"). */
+  slug?: string;
   /** Other identifiers as needed (e.g. source IDs). */
   id?: string;
 }

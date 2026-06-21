@@ -49,17 +49,28 @@ The app uses [Convex](https://convex.dev) as the canonical data store for billio
 
 Both scripts require **CONVEX_URL** in the environment (e.g. from `.env.local`). Load it with `dotenv` or set it in CI secrets.
 
-- **`npm run update-data`** — Pipeline: fetches from **Forbes Real-Time Billionaires** via [rtb-api](https://github.com/komed3/rtb-api) (free, no API key). Takes the top 10 by rank, validates against `src/data/billionaires.types.ts`, and writes to Convex. Net worth from the API is in millions and is stored in billions. On validation or fetch failure the script exits non-zero and does **not** write to Convex.
+- **`npm run update-data`** — Pipeline: fetches the top 10 from **Forbes Real-Time Billionaires** via [rtb-api](https://github.com/komed3/rtb-api) (free, no API key), then cross-checks those names against the public **Bloomberg Billionaires Index** HTML. The pipeline writes per-source values (`forbesNetWorth`, `bloombergNetWorth`) to Convex, and the sync/query path computes the merged `netWorth`. If Bloomberg parsing fails, the pipeline logs the failure and still publishes a fresh Forbes-only snapshot. Net worth from `rtb-api` is in millions and is stored in billions. On Forbes fetch or validation failure the script exits non-zero and does **not** write to Convex.
 - **`npm run data:sync`** — Sync step: reads the canonical dataset from Convex and writes it to `src/data/billionaires.ts` in the same typed shape. On Convex read failure the script exits non-zero and does **not** overwrite `src/data/`.
 
 **When to run:** Run `data:sync` before every production build (locally or in CI) so the static export uses the latest Convex snapshot. Run `update-data` when you want to refresh data from sources (e.g. weekly or on-demand). See `.env.local.example` for the expected variable name.
 
-**Data sources:** Billionaire list and net worth from [rtb-api](https://github.com/komed3/rtb-api) (Forbes real-time data; free to use, no API key). Median salary for the comparison baseline is a configured constant in the pipeline (US median; update in `scripts/update-data.ts` if needed).
+**Data sources:** Primary ranking and net worth come from [rtb-api](https://github.com/komed3/rtb-api) (Forbes real-time data; free to use, no API key). Bloomberg Billionaires Index is parsed as a secondary public website cross-check. Median salary for the comparison baseline is a configured constant in the pipeline.
 
 ## CI and verification
 
 - **Baseline check:** Run `npm run check` to run lint and build (suitable for CI). Ensures the app builds and passes ESLint.
 - **Optional pipeline/sync failure verification:** To confirm the pipeline does not overwrite Convex on invalid data: run `npm run update-data` with invalid or missing env (e.g. unset `CONVEX_URL` or point to a broken URL) and confirm the script exits non-zero and Convex is not overwritten. To confirm the sync step does not overwrite `src/data/` on Convex failure: with Convex unreachable or empty, run `npm run data:sync` and confirm it exits non-zero and does not overwrite `src/data/billionaires.ts`.
+
+## Analytics (optional)
+
+The site supports [Umami](https://umami.is), an open-source, privacy-conscious analytics tool (no cookies, lightweight script). Analytics are **disabled by default** until you configure them.
+
+1. Sign up at [Umami Cloud](https://cloud.umami.is) (free tier) or [self-host Umami](https://umami.is/docs/install).
+2. Add your site domain (`theinedualitycalculator.com`) and copy the **Website ID**.
+3. Set build-time env vars (in `.env.local` for local builds, or Cloudflare Pages **Build variables** for production):
+   - `NEXT_PUBLIC_UMAMI_WEBSITE_ID` — required to enable tracking
+   - `NEXT_PUBLIC_UMAMI_SCRIPT_URL` — optional; defaults to `https://cloud.umami.is/script.js` (use your self-hosted URL if applicable)
+4. Rebuild and deploy. Page views will appear in your Umami dashboard.
 
 ## Deploy on Cloudflare Pages
 

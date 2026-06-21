@@ -1,0 +1,85 @@
+{
+  "dataAsOf": "2026-03-09",
+  "entries": [
+    {
+      "name": "Elon Musk",
+      "netWorthBillions": 792
+    },
+    {
+      "name": "Jeff Bezos",
+      "netWorthBillions": 300
+    },
+    {
+      "name": "Larry P",
+      "netWorthBillions": 271
+    },
+    {
+      "name": "Larry Ellison",
+      "netWorthBillions": 267
+    },
+    {
+      "name": "Sergey Brin",
+      "netWorthBillions": 247
+    },
+    {
+      "name": "Mark Zuckerberg",
+      "netWorthBillions": 234
+    },
+    {
+      "name": "Bernard Arnault",
+      "netWorthBillions": 178
+    },
+    {
+      "name": "Warren Buffett",
+      "netWorthBillions": 173
+    },
+    {
+      "name": "Jen-Hsun Huang",
+      "netWorthBillions": 172
+    },
+    {
+      "name": "Steve Ballmer",
+      "netWorthBillions": 159
+    },
+    {
+      "name": "Amancio Ortega",
+      "netWorthBillions": 149
+    },
+    {
+      "name": "Michael Dell",
+      "netWorthBillions": 145
+    },
+    {
+      "name": "Jim Walton",
+      "netWorthBillions": 126
+    },
+    {
+      "name": "Robson Walton",
+      "netWorthBillions": 121
+    },
+    {
+      "name": "Alice Walton",
+      "netWorthBillions": 119
+    },
+    {
+      "name": "Bill Gates",
+      "netWorthBillions": 115
+    },
+    {
+      "name": "Mukesh Ambani Family",
+      "netWorthBillions": 109
+    },
+    {
+      "name": "Carlos Slim Helu Family",
+      "netWorthBillions": 101
+    },
+    {
+      "name": "Julia Koch Family",
+      "netWorthBillions": 96
+    },
+    {
+      "name": "Francoise Bettencourt Meyers",
+      "netWorthBillions": 91
+    }
+  ]
+}
