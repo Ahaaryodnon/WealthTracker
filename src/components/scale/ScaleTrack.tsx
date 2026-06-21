@@ -30,7 +30,7 @@ export default function ScaleTrack({ landmarks, cameraDollars, pxPerDollar, view
   const centerX = viewportWidth / 2;
 
   const visible = landmarks
-    .map((l) => ({ l, x: dollarsToX(l.dollars - cameraDollars, pxPerDollar) + centerX }))
+    .map((l, idx) => ({ l, idx, x: dollarsToX(l.dollars - cameraDollars, pxPerDollar) + centerX }))
     .filter(({ x }) => x >= -RENDER_MARGIN && x <= viewportWidth + RENDER_MARGIN);
 
   return (
@@ -38,9 +38,12 @@ export default function ScaleTrack({ landmarks, cameraDollars, pxPerDollar, view
       {/* center baseline */}
       <div className="absolute left-0 top-1/2 h-px w-full bg-zinc-200" aria-hidden="true" />
 
-      {visible.map(({ l, x }, i) => {
+      {visible.map(({ l, idx, x }) => {
         const isAmount = l.category === "amount";
-        const labelTop = i % 2 === 0 ? 12 : 64; // alternate heights so neighbours don't collide
+        // Stagger by the landmark's stable sorted index (not the scroll-filtered
+        // position) so heights don't hop while panning; 3 levels reduce overlap
+        // when several low-end items share the viewport window.
+        const labelTop = [8, 52, 96][idx % 3];
         return (
           <div
             key={l.id}
@@ -51,7 +54,7 @@ export default function ScaleTrack({ landmarks, cameraDollars, pxPerDollar, view
               className={`max-w-[160px] text-center ${isAmount ? "font-semibold" : ""}`}
               style={{ marginTop: labelTop }}
             >
-              <p className={`text-sm ${CATEGORY_COLOR[l.category]}`}>{l.label}</p>
+              <p className={`text-sm ${CATEGORY_COLOR[l.category]}`} title={l.source}>{l.label}</p>
               <p className="numeric text-xs text-zinc-500">{formatCompact(l.dollars, formatOpts)}</p>
             </div>
             <div className={`mt-auto mb-0 h-1/2 w-px ${isAmount ? "bg-accent" : "bg-zinc-300"}`} />
