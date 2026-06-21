@@ -76,7 +76,7 @@ Add one field to `LocaleConfig`:
 ```ts
   /** Scale-page landmarks specific to this locale (nominal amounts in its currency). */
   scaleLandmarks: readonly ScaleLandmarkSeed[];
-  /** How many billionaires to plant on the scale, from this locale's billionaire source (US: 3 from the global dataset; UK: 10 from src/data/uk-billionaires.ts). */
+  /** How many billionaires to plant on the scale, from this locale's billionaire source (US: 3 from the global dataset; UK: 5 from src/data/uk-billionaires.ts, which holds the top 10). */
   scaleTopBillionaires: number;
 ```
 
@@ -215,10 +215,10 @@ item carries a `source`. Locale comparison items (`medianSalary`,
 
 Individual UK billionaires are NOT in this seed list — they come from
 `src/data/uk-billionaires.ts` via the billionaire code path.
-`scaleTopBillionaires: 10` for `en-GB` → all 10 entries from that file (Hinduja
-£35.3bn down to the Bukhman brothers £12.5bn) are planted, populating the
-£12bn–£35bn range. (`en-US` keeps `scaleTopBillionaires: 3` from the global
-dataset.)
+`scaleTopBillionaires: 5` for `en-GB` → the top 5 of that file's 10 entries
+(Hinduja £35.3bn down to Idan Ofer £20.1bn) are planted, populating the
+£20bn–£35bn range. The file keeps all 10 as the data source. (`en-US` keeps
+`scaleTopBillionaires: 3` from the global dataset.)
 
 ## Rendering Changes
 
@@ -277,7 +277,8 @@ under the default locale.
 - Exact figures and labels are transcribed from `wealth-shown-to-scale.html`;
   adjust any during review.
 - `src/data/uk-billionaires.ts` holds all 10 from the Rich List 2025
-  (£12.5bn → £35.3bn); `en-GB` plants all 10. Trim/extend by editing that file.
+  (£12.5bn → £35.3bn); `en-GB` plants the top 5 (`scaleTopBillionaires: 5`).
+  Change how many show by editing that knob; change the data in the file.
 - `scaleTopBillionaires` US = 3 is a knob; raise/lower freely.
 - The dedicated UK file is hand-maintained and intentionally outside the Forbes
   pipeline; if a UK pipeline is built later, this file is the seam to replace.
