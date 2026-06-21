@@ -6,78 +6,78 @@
 import type { WealthTrackerData } from "./billionaires.types";
 
 export const wealthTrackerData: WealthTrackerData = {
-  dataAsOf: "2026-03-02",
+  dataAsOf: "2026-06-21",
   entries: [
     {
-      forbesNetWorth: 839.618478,
+      forbesNetWorth: 1239.180967,
       name: "Elon Musk",
       slug: "elon-musk",
       rank: 1,
-      netWorth: 839.618478
+      netWorth: 1239.180967,
     },
     {
-      forbesNetWorth: 253.048372,
+      forbesNetWorth: 300.984806,
       name: "Larry Page",
       slug: "larry-page",
       rank: 2,
-      netWorth: 253.048372
+      netWorth: 300.984806,
     },
     {
-      forbesNetWorth: 233.526324,
+      forbesNetWorth: 277.596225,
       name: "Sergey Brin",
       slug: "sergey-brin",
       rank: 3,
-      netWorth: 233.526324
+      netWorth: 277.596225,
     },
     {
-      forbesNetWorth: 224.125183,
-      name: "Mark Zuckerberg",
-      slug: "mark-zuckerberg",
-      rank: 4,
-      netWorth: 224.125183
-    },
-    {
-      forbesNetWorth: 222.321675,
+      forbesNetWorth: 254.080947,
       name: "Jeff Bezos",
       slug: "jeff-bezos",
-      rank: 5,
-      netWorth: 222.321675
+      rank: 4,
+      netWorth: 254.080947,
     },
     {
-      forbesNetWorth: 197.024201,
+      forbesNetWorth: 234.512735,
+      name: "Michael Dell",
+      slug: "michael-dell",
+      rank: 5,
+      netWorth: 234.512735,
+    },
+    {
+      forbesNetWorth: 231.644913,
       name: "Larry Ellison",
       slug: "larry-ellison",
       rank: 6,
-      netWorth: 197.024201
+      netWorth: 231.644913,
     },
     {
-      forbesNetWorth: 164.146411,
-      name: "Bernard Arnault & family",
-      slug: "bernard-arnault-and-family",
+      forbesNetWorth: 198.24086,
+      name: "Mark Zuckerberg",
+      slug: "mark-zuckerberg",
       rank: 7,
-      netWorth: 164.146411
+      netWorth: 198.24086,
     },
     {
-      forbesNetWorth: 158.06177499999998,
+      forbesNetWorth: 182.057422,
       name: "Jensen Huang",
       slug: "jensen-huang",
       rank: 8,
-      netWorth: 158.06177499999998
+      netWorth: 182.057422,
     },
     {
-      forbesNetWorth: 145.274484,
-      name: "Rob Walton & family",
-      slug: "rob-walton-and-family",
+      forbesNetWorth: 153.261493,
+      name: "Bernard Arnault & family",
+      slug: "bernard-arnault",
       rank: 9,
-      netWorth: 145.274484
+      netWorth: 153.261493,
     },
     {
-      forbesNetWorth: 142.549447,
-      name: "Jim Walton & family",
-      slug: "jim-walton-and-family",
+      forbesNetWorth: 144.765127,
+      name: "Warren Buffett",
+      slug: "warren-buffett",
       rank: 10,
-      netWorth: 142.549447
-    }
+      netWorth: 144.765127,
+    },
   ],
-  medianSalary: 59384
+  medianSalary: 59384,
 };

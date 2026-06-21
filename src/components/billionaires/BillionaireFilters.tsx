@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { BillionaireEntry } from "@/data/billionaires.types";
+import { useLocale } from "@/contexts/LocaleContext";
 import { getNetWorth } from "@/lib/billionaire-utils";
 import { combinedPassiveIncomePerSecond } from "@/lib/passive-income-calc";
 import { DEFAULT_RETURN_RATE } from "@/lib/constants";
@@ -16,9 +17,15 @@ interface BillionaireFiltersProps {
 type SortField = "rank" | "netWorth" | "income";
 
 export default function BillionaireFilters({ entries, countries }: BillionaireFiltersProps) {
+  const { locale } = useLocale();
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState("");
   const [sortBy, setSortBy] = useState<SortField>("rank");
+  const toLocal = locale.exchangeRateFromUsd;
+  const formatOpts = {
+    numberLocale: locale.numberLocale,
+    currency: locale.currency,
+  };
 
   const filtered = useMemo(() => {
     let result = entries;
@@ -93,7 +100,9 @@ export default function BillionaireFilters({ entries, countries }: BillionaireFi
           {filtered.map((entry) => {
             const nw = getNetWorth(entry);
             const perMinute =
-              combinedPassiveIncomePerSecond([entry], DEFAULT_RETURN_RATE) * 60;
+              combinedPassiveIncomePerSecond([entry], DEFAULT_RETURN_RATE) *
+              60 *
+              toLocal;
 
             return (
               <Link
@@ -125,10 +134,10 @@ export default function BillionaireFilters({ entries, countries }: BillionaireFi
                     </div>
                     <div className="mt-1 flex items-baseline justify-between gap-2">
                       <span className="font-mono text-sm tabular-nums text-zinc-500">
-                        {formatCompact(nw * 1e9)}
+                        {formatCompact(nw * 1e9 * toLocal, formatOpts)}
                       </span>
                       <span className="font-mono text-xs font-semibold tabular-nums text-zinc-700">
-                        {formatCurrency(Math.round(perMinute))}/min
+                        {formatCurrency(Math.round(perMinute), formatOpts)}/min
                       </span>
                     </div>
                     {(entry.citizenship || entry.source) && (
