@@ -4,6 +4,7 @@ import type { BillionaireEntry } from "@/data/billionaires.types";
 import type { ComparisonItem } from "@/lib/locale";
 import { BILLION, MILLION, TRILLION } from "@/lib/scale/scale-math";
 import { assembleLandmarks, trackEndDollars } from "@/lib/scale/scale-landmarks";
+import type { ScaleLandmarkSeed } from "@/lib/scale/scale-landmarks";
 
 const ENTRIES: BillionaireEntry[] = [
   { name: "Rich Person", slug: "rich-person", rank: 1, netWorth: 1239.18 },
@@ -57,4 +58,42 @@ test("trackEnd covers the largest landmark and is at least past a trillion", () 
   const end = trackEndDollars(ls);
   assert.ok(end >= max);
   assert.ok(end >= TRILLION * 1.2);
+});
+
+const SEEDS: ScaleLandmarkSeed[] = [
+  { label: "End homelessness", dollars: 9_600_000_000, category: "publicgood", source: "NAEH 2025" },
+  { label: "Forbes 400 combined", dollars: 6_600_000_000_000, category: "wealth" },
+];
+
+test("scaleLandmarks seeds flow through with slug ids, category, and source", () => {
+  const ls = assembleLandmarks({ entries: [], comparisons: [], scaleLandmarks: SEEDS });
+  const hl = ls.find((l) => l.label === "End homelessness");
+  assert.ok(hl);
+  assert.equal(hl?.id, "seed-0-end-homelessness");
+  assert.equal(hl?.category, "publicgood");
+  assert.equal(hl?.source, "NAEH 2025");
+  const fb = ls.find((l) => l.label === "Forbes 400 combined");
+  assert.equal(fb?.category, "wealth");
+  assert.equal(fb?.dollars, 6_600_000_000_000);
+  assert.equal(fb?.source, undefined);
+});
+
+test("all landmark ids are unique in a fully-populated assembly", () => {
+  const ls = assembleLandmarks({
+    entries: ENTRIES,
+    comparisons: COMPARISONS,
+    scaleLandmarks: SEEDS,
+    topBillionaires: 2,
+  });
+  const ids = ls.map((l) => l.id);
+  assert.equal(new Set(ids).size, ids.length);
+});
+
+test("billionaire landmarks carry their entry source", () => {
+  const withSource = [
+    { name: "Rich Person", slug: "rich-person", netWorth: 100, source: "Test List" },
+  ];
+  const ls = assembleLandmarks({ entries: withSource, comparisons: [], topBillionaires: 1 });
+  const b = ls.find((l) => l.category === "billionaire");
+  assert.equal(b?.source, "Test List");
 });

@@ -16,6 +16,8 @@ const CATEGORY_COLOR: Record<Landmark["category"], string> = {
   amount: "text-accent",
   everyday: "text-emerald-600",
   billionaire: "text-amber-600",
+  wealth: "text-rose-600",
+  publicgood: "text-cyan-700",
   world: "text-zinc-500",
 };
 
@@ -36,15 +38,19 @@ export default function ScaleTrack({ landmarks, cameraDollars, pxPerDollar, view
       {/* center baseline */}
       <div className="absolute left-0 top-1/2 h-px w-full bg-zinc-200" aria-hidden="true" />
 
-      {visible.map(({ l, x }) => {
+      {visible.map(({ l, x }, i) => {
         const isAmount = l.category === "amount";
+        const labelTop = i % 2 === 0 ? 12 : 64; // alternate heights so neighbours don't collide
         return (
           <div
             key={l.id}
             className="absolute top-0 flex h-full flex-col items-center"
             style={{ left: `${x}px`, transform: "translateX(-50%)" }}
           >
-            <div className={`mt-6 max-w-[160px] text-center ${isAmount ? "font-semibold" : ""}`}>
+            <div
+              className={`max-w-[160px] text-center ${isAmount ? "font-semibold" : ""}`}
+              style={{ marginTop: labelTop }}
+            >
               <p className={`text-sm ${CATEGORY_COLOR[l.category]}`}>{l.label}</p>
               <p className="numeric text-xs text-zinc-500">{formatCompact(l.dollars, formatOpts)}</p>
             </div>
