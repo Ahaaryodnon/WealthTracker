@@ -11,7 +11,7 @@
     "check": "npm run lint && npm run build",
     "test": "playwright test",
     "test:e2e": "playwright test",
-    "test:unit": "tsx --test scripts/update-data.test.ts src/lib/scale/scale-math.test.ts src/lib/scale/scale-landmarks.test.ts",
+    "test:unit": "tsx --test scripts/update-data.test.ts src/lib/scale/scale-math.test.ts src/lib/scale/scale-landmarks.test.ts src/data/uk-billionaires.test.ts",
     "update-data": "tsx scripts/update-data.ts",
     "scrape-sources": "tsx scripts/scrape-sources.ts",
     "scrape-sources:headed": "tsx scripts/scrape-sources.ts --headed",
