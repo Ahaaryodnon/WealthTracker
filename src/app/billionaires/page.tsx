@@ -38,6 +38,12 @@ export default function BillionairesIndexPage() {
           {entries.length} billionaires ranked by net worth. Click any profile to see their
           passive income in real time.
         </p>
+        <Link
+          href="/scale"
+          className="mt-3 inline-block text-sm font-medium text-accent underline-offset-4 hover:underline"
+        >
+          New: see a million vs a billion vs a trillion →
+        </Link>
       </header>
 
       <BillionaireFilters entries={entries} countries={countries} />

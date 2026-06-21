@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { BillionaireEntry } from "@/data/billionaires.types";
 import { useLocale } from "@/contexts/LocaleContext";
 import { combinedPassiveIncomePerSecond } from "@/lib/passive-income-calc";
@@ -141,6 +142,15 @@ export default function ContextStrip({
             formatOpts={formatOpts}
           />
         ))}
+      </div>
+
+      <div className="mt-10 text-center">
+        <Link
+          href="/scale"
+          className="inline-flex h-11 items-center justify-center rounded-full border border-accent px-6 text-sm font-medium text-accent transition-colors hover:bg-accent hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        >
+          See how big a trillion really is →
+        </Link>
       </div>
     </section>
   );
