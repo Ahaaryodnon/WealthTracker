@@ -58,8 +58,8 @@ export function assembleLandmarks(opts: AssembleOptions): Landmark[] {
     .filter((e) => typeof e.netWorth === "number" && (e.netWorth as number) > 0)
     .sort((a, b) => (b.netWorth as number) - (a.netWorth as number))
     .slice(0, Math.max(0, topBillionaires))
-    .map((e) => ({
-      id: `billionaire-${e.slug}`,
+    .map((e, i) => ({
+      id: `billionaire-${i}-${e.slug}`,
       label: e.name,
       dollars: (e.netWorth as number) * BILLION,
       category: "billionaire" as const,

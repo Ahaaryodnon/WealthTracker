@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { wealthTrackerData } from "@/data/billionaires";
 import ScaleJourney from "@/components/scale/ScaleJourney";
 import { formatCurrency } from "@/lib/format-currency";
+import { BILLION } from "@/lib/scale/scale-math";
 
 export const metadata: Metadata = {
   title: "A Million vs a Billion vs a Trillion — The Inequality Calculator",
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function ScalePage() {
   const { entries } = wealthTrackerData;
-  const topNetWorth = entries.reduce((m, e) => Math.max(m, e.netWorth ?? 0), 0) * 1_000_000_000;
+  const topNetWorth = entries.reduce((m, e) => Math.max(m, e.netWorth ?? 0), 0) * BILLION;
 
   return (
     <main className="min-h-screen bg-white">

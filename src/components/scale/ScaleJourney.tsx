@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { BillionaireEntry } from "@/data/billionaires.types";
 import { useLocale } from "@/contexts/LocaleContext";
 import { assembleLandmarks, trackEndDollars } from "@/lib/scale/scale-landmarks";
+import { MILLION } from "@/lib/scale/scale-math";
 import { formatCurrency } from "@/lib/format-currency";
 import ScaleControls, { type ScaleSpeed } from "@/components/scale/ScaleControls";
 import ScaleMinimap from "@/components/scale/ScaleMinimap";
@@ -38,18 +39,17 @@ export default function ScaleJourney({ entries }: ScaleJourneyProps) {
   const lastTsRef = useRef<number | null>(null);
   // Mutable mirrors so the rAF loop reads fresh values without re-subscribing.
   const cameraRef = useRef(0);
-  const playingRef = useRef(false);
   const speedRef = useRef<ScaleSpeed>("play");
   // Mirror latest state into refs so the rAF loop reads fresh values without re-subscribing.
   useEffect(() => {
     cameraRef.current = cameraDollars;
-    playingRef.current = isPlaying;
     speedRef.current = speed;
   });
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
+    if (mq.matches) setCameraDollars(MILLION);
     const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
