@@ -65,7 +65,7 @@ export interface SourceFetchLog {
 }
 
 export interface ForbesSourceEntry {
-  id: string;
+  slug: string;
   name: string;
   forbesNetWorth: number;
 }
@@ -77,7 +77,7 @@ export interface ForbesSourceData {
 }
 
 export interface BloombergSourceEntry {
-  id: string;
+  slug: string;
   rank: number;
   name: string;
   bloombergNetWorth: number;
@@ -174,7 +174,7 @@ export function parseBloombergHtml(html: string): BloombergSourceData {
       return {
         rank: Number(rankMatch[1]),
         name,
-        id: deriveBillionaireId(name),
+        slug: deriveBillionaireId(name),
         bloombergNetWorth: parseMoneyToBillions(netWorthMatch[1].trim()),
       } satisfies BloombergSourceEntry;
     })
@@ -223,7 +223,7 @@ export async function fetchForbesSource(fetchImpl: typeof fetch = fetch): Promis
     }
 
     return {
-      id: deriveBillionaireId(entry.name),
+      slug: deriveBillionaireId(entry.name),
       name: entry.name,
       forbesNetWorth: entry.networth / 1000,
     } satisfies ForbesSourceEntry;
@@ -256,20 +256,20 @@ export function mergeSources(
 ): WealthTrackerData {
   const bloombergMatches = new Map<string, BloombergSourceEntry[]>();
   for (const entry of bloomberg?.entries ?? []) {
-    const existing = bloombergMatches.get(entry.id);
+    const existing = bloombergMatches.get(entry.slug);
     if (existing) {
       existing.push(entry);
     } else {
-      bloombergMatches.set(entry.id, [entry]);
+      bloombergMatches.set(entry.slug, [entry]);
     }
   }
 
   const entries: BillionaireEntry[] = forbes.entries.map((entry) => {
-    const matches = bloombergMatches.get(entry.id) ?? [];
+    const matches = bloombergMatches.get(entry.slug) ?? [];
     const bloombergNetWorth = matches.length === 1 ? matches[0].bloombergNetWorth : null;
 
     return {
-      id: entry.id,
+      slug: entry.slug,
       name: entry.name,
       forbesNetWorth: entry.forbesNetWorth,
       bloombergNetWorth,

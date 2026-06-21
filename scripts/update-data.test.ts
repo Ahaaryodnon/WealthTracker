@@ -33,31 +33,31 @@ test("parseBloombergHtml extracts as-of date and rows from fixture", async () =>
   assert.equal(parsed.entries.length, 3);
   assert.deepEqual(parsed.entries[0], {
     rank: 1,
-    id: "elon-musk",
+    slug: "elon-musk",
     name: "Elon Musk",
     bloombergNetWorth: 659,
   });
   assert.deepEqual(parsed.entries[1], {
     rank: 2,
-    id: "larry-page",
+    slug: "larry-page",
     name: "Larry Page",
     bloombergNetWorth: 264,
   });
 });
 
-test("mergeSources combines Forbes and Bloomberg values by canonical id", () => {
+test("mergeSources combines Forbes and Bloomberg values by canonical slug", () => {
   const merged = mergeSources(
     {
       dataAsOf: "2026-03-18",
       fetchedAt: "2026-03-19T00:00:00.000Z",
       entries: [
         {
-          id: "larry-page",
+          slug: "larry-page",
           name: "Larry Page",
           forbesNetWorth: 253.048372,
         },
         {
-          id: "jensen-huang",
+          slug: "jensen-huang",
           name: "Jensen Huang",
           forbesNetWorth: 158.061775,
         },
@@ -69,19 +69,19 @@ test("mergeSources combines Forbes and Bloomberg values by canonical id", () => 
       entries: [
         {
           rank: 2,
-          id: "larry-page",
+          slug: "larry-page",
           name: "Larry Page",
           bloombergNetWorth: 264,
         },
         {
           rank: 8,
-          id: "jensen-huang",
+          slug: "jensen-huang",
           name: "Jensen Huang",
           bloombergNetWorth: 149,
         },
         {
           rank: 10,
-          id: "warren-buffett",
+          slug: "warren-buffett",
           name: "Warren Buffett",
           bloombergNetWorth: 144,
         },
@@ -91,13 +91,13 @@ test("mergeSources combines Forbes and Bloomberg values by canonical id", () => 
 
   assert.deepEqual(merged.entries, [
     {
-      id: "larry-page",
+      slug: "larry-page",
       name: "Larry Page",
       forbesNetWorth: 253.048372,
       bloombergNetWorth: 264,
     },
     {
-      id: "jensen-huang",
+      slug: "jensen-huang",
       name: "Jensen Huang",
       forbesNetWorth: 158.061775,
       bloombergNetWorth: 149,
@@ -112,7 +112,7 @@ test("mergeSources leaves Bloomberg null when source is unavailable", () => {
       fetchedAt: "2026-03-19T00:00:00.000Z",
       entries: [
         {
-          id: "rob-walton",
+          slug: "rob-walton",
           name: "Rob Walton & family",
           forbesNetWorth: 145.274484,
         },
@@ -123,7 +123,7 @@ test("mergeSources leaves Bloomberg null when source is unavailable", () => {
 
   assert.deepEqual(merged.entries, [
     {
-      id: "rob-walton",
+      slug: "rob-walton",
       name: "Rob Walton & family",
       forbesNetWorth: 145.274484,
       bloombergNetWorth: null,
@@ -138,7 +138,7 @@ test("mergeSources rejects ambiguous Bloomberg matches by leaving value null", (
       fetchedAt: "2026-03-19T00:00:00.000Z",
       entries: [
         {
-          id: "larry-page",
+          slug: "larry-page",
           name: "Larry Page",
           forbesNetWorth: 253.048372,
         },
@@ -150,13 +150,13 @@ test("mergeSources rejects ambiguous Bloomberg matches by leaving value null", (
       entries: [
         {
           rank: 2,
-          id: "larry-page",
+          slug: "larry-page",
           name: "Larry Page",
           bloombergNetWorth: 264,
         },
         {
           rank: 3,
-          id: "larry-page",
+          slug: "larry-page",
           name: "Lawrence Page",
           bloombergNetWorth: 265,
         },
@@ -166,7 +166,7 @@ test("mergeSources rejects ambiguous Bloomberg matches by leaving value null", (
 
   assert.deepEqual(merged.entries, [
     {
-      id: "larry-page",
+      slug: "larry-page",
       name: "Larry Page",
       forbesNetWorth: 253.048372,
       bloombergNetWorth: null,
