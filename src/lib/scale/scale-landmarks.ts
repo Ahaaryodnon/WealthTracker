@@ -1,6 +1,6 @@
 import type { BillionaireEntry } from "@/data/billionaires.types";
 import type { ComparisonItem } from "@/lib/locale";
-import { BILLION, TRILLION } from "@/lib/scale/scale-math";
+import { MILLION, BILLION, TRILLION } from "@/lib/scale/scale-math";
 
 export type LandmarkCategory = "amount" | "everyday" | "billionaire" | "world";
 
@@ -20,9 +20,9 @@ export interface AssembleOptions {
 }
 
 const AMOUNT_LANDMARKS: Landmark[] = [
-  { id: "amount-million", label: "One million", dollars: 1_000_000, category: "amount" },
-  { id: "amount-billion", label: "One billion", dollars: 1_000_000_000, category: "amount" },
-  { id: "amount-trillion", label: "One trillion", dollars: 1_000_000_000_000, category: "amount" },
+  { id: "amount-million", label: "One million", dollars: MILLION, category: "amount" },
+  { id: "amount-billion", label: "One billion", dollars: BILLION, category: "amount" },
+  { id: "amount-trillion", label: "One trillion", dollars: TRILLION, category: "amount" },
 ];
 
 // Everyday figures that aren't locale-specific in our data.
@@ -39,10 +39,7 @@ const WORLD_STATIC: Landmark[] = [
 ];
 
 // Locale comparison ids we surface near the start of the journey.
-const EVERYDAY_FROM_COMPARISONS: { id: string; label: string }[] = [
-  { id: "medianSalary", label: "Median salary" },
-  { id: "averageHomePrice", label: "Median home price" },
-];
+const EVERYDAY_FROM_COMPARISONS: string[] = ["medianSalary", "averageHomePrice"];
 
 /**
  * Build the full, sorted landmark list from the dataset + active locale.
@@ -51,10 +48,10 @@ const EVERYDAY_FROM_COMPARISONS: { id: string; label: string }[] = [
 export function assembleLandmarks(opts: AssembleOptions): Landmark[] {
   const { entries, comparisons, topBillionaires = 1 } = opts;
 
-  const everydayFromLocale: Landmark[] = EVERYDAY_FROM_COMPARISONS.flatMap((m) => {
-    const c = comparisons.find((x) => x.id === m.id);
+  const everydayFromLocale: Landmark[] = EVERYDAY_FROM_COMPARISONS.flatMap((id) => {
+    const c = comparisons.find((x) => x.id === id);
     if (!c || typeof c.value !== "number") return [];
-    return [{ id: `everyday-${m.id}`, label: m.label, dollars: c.value, category: "everyday" as const }];
+    return [{ id: `everyday-${id}`, label: c.label, dollars: c.value, category: "everyday" as const }];
   });
 
   const billionaires: Landmark[] = [...entries]
