@@ -40,9 +40,12 @@ export default function ScaleJourney({ entries }: ScaleJourneyProps) {
   const cameraRef = useRef(0);
   const playingRef = useRef(false);
   const speedRef = useRef<ScaleSpeed>("play");
-  cameraRef.current = cameraDollars;
-  playingRef.current = isPlaying;
-  speedRef.current = speed;
+  // Mirror latest state into refs so the rAF loop reads fresh values without re-subscribing.
+  useEffect(() => {
+    cameraRef.current = cameraDollars;
+    playingRef.current = isPlaying;
+    speedRef.current = speed;
+  });
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
