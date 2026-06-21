@@ -27,18 +27,16 @@ export default function ScaleTrack({ landmarks, cameraDollars, pxPerDollar, view
   const formatOpts = { numberLocale: locale.numberLocale, currency: locale.currency };
   const centerX = viewportWidth / 2;
 
-  const visible = landmarks.filter((l) => {
-    const x = dollarsToX(l.dollars - cameraDollars, pxPerDollar) + centerX;
-    return x >= -RENDER_MARGIN && x <= viewportWidth + RENDER_MARGIN;
-  });
+  const visible = landmarks
+    .map((l) => ({ l, x: dollarsToX(l.dollars - cameraDollars, pxPerDollar) + centerX }))
+    .filter(({ x }) => x >= -RENDER_MARGIN && x <= viewportWidth + RENDER_MARGIN);
 
   return (
     <div className="relative h-64 w-full overflow-hidden border-y border-zinc-200 bg-gradient-to-b from-zinc-50 to-white">
       {/* center baseline */}
       <div className="absolute left-0 top-1/2 h-px w-full bg-zinc-200" aria-hidden="true" />
 
-      {visible.map((l) => {
-        const x = dollarsToX(l.dollars - cameraDollars, pxPerDollar) + centerX;
+      {visible.map(({ l, x }) => {
         const isAmount = l.category === "amount";
         return (
           <div
