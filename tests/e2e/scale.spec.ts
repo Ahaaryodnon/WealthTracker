@@ -21,8 +21,9 @@ test.describe("Scale page", () => {
     const before = await odometer.textContent();
 
     await page.getByRole("button", { name: "Play" }).click();
-    await page.waitForTimeout(800);
-    // Pause to freeze the value for comparison
+    // Web-first assertion: retries until the odometer text changes (no fixed sleep).
+    await expect(odometer).not.toHaveText(before ?? "");
+    // Pause to freeze the value for comparison.
     await page.getByRole("button", { name: "Pause" }).click();
     const after = await odometer.textContent();
 
