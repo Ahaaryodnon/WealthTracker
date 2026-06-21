@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/contexts/LocaleContext";
 import { formatDataAsOf } from "@/lib/format-date";
+import { useScrollReveal } from "@/lib/useScrollReveal";
 
 interface MethodologySectionProps {
   dataAsOf: string;
@@ -10,16 +12,20 @@ interface MethodologySectionProps {
 export default function MethodologySection({
   dataAsOf,
 }: MethodologySectionProps) {
+  const { locale } = useLocale();
   const [expanded, setExpanded] = useState(false);
-  const dataAsOfFormatted = formatDataAsOf(dataAsOf);
+  const dataAsOfFormatted = formatDataAsOf(dataAsOf, locale.dateLocale);
+  const sectionRef = useScrollReveal<HTMLElement>();
 
   return (
     <section
+      ref={sectionRef}
       id="methodology"
       aria-label="Methodology"
-      className="border-t border-zinc-200 py-16 sm:py-24"
+      className="reveal py-20 sm:py-32"
     >
-      <h2 className="mb-4 text-center text-lg font-medium text-zinc-900">
+      <p className="section-kicker mb-3 text-center">Method</p>
+      <h2 className="section-title mb-4 text-center">
         How we calculate this
       </h2>
 
@@ -40,7 +46,7 @@ export default function MethodologySection({
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
-            className="inline-flex items-center gap-1 text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-900"
+            className="inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-zinc-500 transition-colors hover:text-accent"
             aria-expanded={expanded}
           >
             {expanded ? "Hide" : "See full"} methodology
@@ -60,7 +66,7 @@ export default function MethodologySection({
         </div>
 
         {expanded && (
-          <div className="mt-6 space-y-6 rounded-lg border border-zinc-200 bg-zinc-50 p-6 text-sm leading-relaxed text-zinc-600">
+          <div className="glass-panel mt-6 space-y-6 rounded-[1.75rem] p-6 text-sm leading-relaxed text-zinc-600">
             <div>
               <h3 className="mb-2 font-medium text-zinc-900">
                 Return assumptions
@@ -138,7 +144,9 @@ export default function MethodologySection({
                   available; we average with Forbes where both exist
                 </li>
                 <li>
-                  Median US salary from <strong>US Census Bureau</strong>
+                  {locale.id === "en-GB"
+                    ? "Median UK salary from ONS"
+                    : "Median US salary from US Census Bureau"}
                 </li>
               </ul>
             </div>

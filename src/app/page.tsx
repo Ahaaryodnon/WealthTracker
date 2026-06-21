@@ -3,6 +3,7 @@ import PageClient from "@/components/PageClient";
 import {
   combinedPassiveIncomePerSecond,
   accumulatedFromRate,
+  computeYtdTotal,
 } from "@/lib/passive-income-calc";
 import { formatCurrency } from "@/lib/format-currency";
 import { formatDataAsOf } from "@/lib/format-date";
@@ -16,8 +17,9 @@ function staticTotalAtBuild(entries: typeof wealthTrackerData.entries, dataAsOf:
 }
 
 export default function Home() {
-  const { entries, medianSalary, dataAsOf } = wealthTrackerData;
+  const { entries, dataAsOf } = wealthTrackerData;
   const staticSnapshot = staticTotalAtBuild(entries, dataAsOf);
+  const initialYtdTotal = computeYtdTotal(entries, DEFAULT_RETURN_RATE);
 
   return (
     <>
@@ -29,7 +31,7 @@ export default function Home() {
           <p className="mb-2 text-xs font-medium uppercase tracking-widest text-zinc-400">
             Static snapshot (JavaScript disabled)
           </p>
-          <p className="mb-4 font-mono text-4xl font-bold tabular-nums text-zinc-900">
+          <p className="numeric mb-4 text-4xl font-bold text-zinc-900">
             {formatCurrency(staticSnapshot)}
           </p>
           <p className="mb-2 text-sm text-zinc-600">
@@ -43,8 +45,8 @@ export default function Home() {
       </noscript>
       <PageClient
         entries={entries}
-        medianSalary={medianSalary}
         dataAsOf={dataAsOf}
+        initialYtdTotal={initialYtdTotal}
       />
     </>
   );
