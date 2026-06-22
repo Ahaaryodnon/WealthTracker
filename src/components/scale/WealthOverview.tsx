@@ -2,6 +2,8 @@
 
 import type { Landmark } from "@/lib/scale/scale-landmark-types";
 import { dollarsToSliderFraction, sliderFractionToDollars } from "@/lib/scale/scale-math";
+import { useLocale } from "@/contexts/LocaleContext";
+import { formatCompact } from "@/lib/format-currency";
 
 export interface WealthOverviewProps {
   bars: Landmark[];
@@ -18,6 +20,25 @@ export default function WealthOverview({ bars, posDollars, maxDollars, onSeek }:
     const frac = (clientX - rect.left) / rect.width;
     onSeek(sliderFractionToDollars(frac, maxDollars));
   };
+  const { locale } = useLocale();
+  const formatOpts = { numberLocale: locale.numberLocale, currency: locale.currency };
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const frac = dollarsToSliderFraction(posDollars, maxDollars);
+    const step = 0.02;
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+      e.preventDefault();
+      onSeek(sliderFractionToDollars(Math.min(1, frac + step), maxDollars));
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+      e.preventDefault();
+      onSeek(sliderFractionToDollars(Math.max(0, frac - step), maxDollars));
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      onSeek(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      onSeek(maxDollars);
+    }
+  };
   return (
     <div
       className="relative h-6 w-full cursor-pointer rounded-full bg-zinc-100"
@@ -27,6 +48,8 @@ export default function WealthOverview({ bars, posDollars, maxDollars, onSeek }:
       aria-valuemax={Math.round(maxDollars)}
       aria-valuenow={Math.round(posDollars)}
       tabIndex={0}
+      onKeyDown={onKeyDown}
+      aria-valuetext={formatCompact(Math.round(posDollars), formatOpts)}
       onClick={(e) => seek(e.clientX, e.currentTarget)}
     >
       {bars.map((l) => (
