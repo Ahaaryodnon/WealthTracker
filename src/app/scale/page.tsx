@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { wealthTrackerData } from "@/data/billionaires";
 import WealthScale from "@/components/scale/WealthScale";
 import { formatCurrency } from "@/lib/format-currency";
@@ -37,6 +38,14 @@ export default function ScalePage() {
           <p className="text-sm text-zinc-500">Enable JavaScript to travel the scale interactively.</p>
         </div>
       </noscript>
+      <nav className="mx-auto max-w-5xl px-4 pt-6">
+        <Link
+          href="/"
+          className="text-sm text-zinc-500 transition-colors hover:text-zinc-700"
+        >
+          &larr; The Inequality Calculator
+        </Link>
+      </nav>
       <WealthScale entries={entries} />
     </main>
   );
