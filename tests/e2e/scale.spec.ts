@@ -1,40 +1,32 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Scale page", () => {
-  test("renders the journey with heading and controls", async ({ page }) => {
+test.describe("Scale page (bars from zero)", () => {
+  test("renders the wealth-to-scale region, heading, bars, and controls", async ({ page }) => {
     await page.goto("/scale");
-
-    await expect(
-      page.getByRole("region", { name: "Million, billion, trillion scale journey" })
-    ).toBeVisible();
-
-    await expect(page.getByRole("heading", { name: "A million, a billion, a trillion" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Wealth to scale" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Wealth, to scale" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Play" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Skip to $1B" })).toBeVisible();
+    // many bars render at the start
+    expect(await page.getByTestId("wealth-bar").count()).toBeGreaterThan(8);
   });
 
-  test("odometer advances when playing", async ({ page }) => {
+  test("travelling ends bars: fewer remain 'running' after skipping to $1B", async ({ page }) => {
     await page.goto("/scale");
-
-    const odometer = page.getByRole("status", { name: "Current position on the scale" });
-    await expect(odometer).toBeVisible();
-    const before = await odometer.textContent();
-
-    await page.getByRole("button", { name: "Play" }).click();
-    // Web-first assertion: retries until the odometer text changes (no fixed sleep).
-    await expect(odometer).not.toHaveText(before ?? "");
-    // Pause to freeze the value for comparison.
-    await page.getByRole("button", { name: "Pause" }).click();
-    const after = await odometer.textContent();
-
-    expect(after).not.toEqual(before);
-  });
-
-  test("skip to $1B jumps the odometer into the billions", async ({ page }) => {
-    await page.goto("/scale");
+    const runningStart = await page.locator('[data-testid="wealth-bar"][data-state="running"]').count();
+    const endedStart = await page.locator('[data-testid="wealth-bar"][data-state="ended"]').count();
     await page.getByRole("button", { name: "Skip to $1B" }).click();
-    const odometer = page.getByRole("status", { name: "Current position on the scale" });
-    await expect(odometer).toContainText("B");
+    await expect(page.getByRole("status", { name: "Current position" })).toContainText("B");
+    const runningAfter = await page.locator('[data-testid="wealth-bar"][data-state="running"]').count();
+    const endedAfter = await page.locator('[data-testid="wealth-bar"][data-state="ended"]').count();
+    expect(runningAfter).toBeLessThan(runningStart);
+    expect(endedAfter).toBeGreaterThan(endedStart);
+  });
+
+  test("UK locale shows a UK Rich List bar", async ({ page }) => {
+    await page.goto("/scale");
+    await page.getByRole("button", { name: "GBP" }).click();
+    await expect(page.getByText("Hinduja family")).toBeVisible();
   });
 
   test("home page links to the scale page", async ({ page }) => {

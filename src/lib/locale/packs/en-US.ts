@@ -104,6 +104,7 @@ export const enUS: LocaleConfig = {
     { label: "Doctor", value: 260_000, note: "avg" },
   ],
   scaleTopBillionaires: 3,
+  scaleScrollMaxDollars: 7_000_000_000_000,
   scaleLandmarks: [
     { label: "US poverty line (family of 4)", dollars: 31_812, category: "everyday", source: "US Census 2024" },
     { label: "Median US household income", dollars: 83_730, category: "everyday", source: "US Census 2024" },

@@ -105,6 +105,7 @@ export const enGB: LocaleConfig = {
     { label: "Doctor", value: 76_000, note: "avg" },
   ],
   scaleTopBillionaires: 5,
+  scaleScrollMaxDollars: 1_050_000_000_000,
   scaleLandmarks: [
     { label: "NHS Band 5 nurse salary", dollars: 33_487, category: "everyday", source: "2024" },
     { label: "Median UK household income", dollars: 36_700, category: "everyday", source: "ONS FYE2024" },

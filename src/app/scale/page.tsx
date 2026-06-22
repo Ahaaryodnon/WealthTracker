@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { wealthTrackerData } from "@/data/billionaires";
-import ScaleJourney from "@/components/scale/ScaleJourney";
+import WealthScale from "@/components/scale/WealthScale";
 import { formatCurrency } from "@/lib/format-currency";
 import { BILLION } from "@/lib/scale/scale-math";
 
@@ -29,14 +29,15 @@ export default function ScalePage() {
             Scale (JavaScript disabled)
           </p>
           <p className="mb-4 text-zinc-700">
-            A million is {formatCurrency(1_000_000)}. A billion is {formatCurrency(1_000_000_000)} —
-            one thousand millions. A trillion is {formatCurrency(1_000_000_000_000)} — one thousand
-            billions. The richest person today is worth about {formatCurrency(topNetWorth)}.
+            Every amount drawn as a bar from zero: a {formatCurrency(1_000_000)} bar is a sliver,
+            a {formatCurrency(1_000_000_000)} bar is a thousand times longer, and a{" "}
+            {formatCurrency(1_000_000_000_000)} bar is a thousand times longer again. The richest
+            person today is worth about {formatCurrency(topNetWorth)}.
           </p>
           <p className="text-sm text-zinc-500">Enable JavaScript to travel the scale interactively.</p>
         </div>
       </noscript>
-      <ScaleJourney entries={entries} />
+      <WealthScale entries={entries} />
     </main>
   );
 }

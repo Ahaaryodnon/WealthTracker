@@ -7,7 +7,7 @@ import type {
   ScaleLandmarkSeed,
 } from "@/lib/scale/scale-landmark-types";
 
-// Re-export so existing importers (ScaleTrack, ScaleMinimap, ScaleJourney) keep working.
+// Re-export the landmark types so they can also be imported from this module.
 export type { Landmark, LandmarkCategory, ScaleLandmarkSeed };
 
 export interface AssembleOptions {
