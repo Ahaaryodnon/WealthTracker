@@ -47,4 +47,6 @@ export interface LocaleConfig {
   scaleLandmarks: readonly ScaleLandmarkSeed[];
   /** How many billionaires to plant on the scale, from this locale's source (US: 3 from the global dataset; UK: 5 from src/data/uk-billionaires.ts). */
   scaleTopBillionaires: number;
+  /** The bars-from-zero travel spans $0 -> this ceiling (nominal, locale currency). Landmarks above it become "& beyond" jump markers. */
+  scaleScrollMaxDollars: number;
 }
