@@ -1,22 +1,16 @@
-import Script from "next/script";
-
-const websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
-const scriptUrl =
-  process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ?? "https://cloud.umami.is/script.js";
+const websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID?.trim();
+const scriptUrl = (
+  process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ?? "https://cloud.umami.is/script.js"
+).trim();
 
 /**
  * Privacy-conscious page analytics via Umami (https://umami.is).
- * Enabled only when NEXT_PUBLIC_UMAMI_WEBSITE_ID is set at build time.
+ * Plain <script> in <head> so static export includes it without waiting for React.
  */
 export function Analytics() {
   if (!websiteId) return null;
 
   return (
-    <Script
-      defer
-      src={scriptUrl}
-      data-website-id={websiteId}
-      strategy="afterInteractive"
-    />
+    <script defer src={scriptUrl} data-website-id={websiteId} />
   );
 }

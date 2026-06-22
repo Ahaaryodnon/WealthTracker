@@ -3,6 +3,8 @@
  * Each locale has its own currency, number/date formatting, and comparison data.
  */
 
+import type { ScaleLandmarkSeed } from "@/lib/scale/scale-landmark-types";
+
 export type LocaleId = "en-US" | "en-GB";
 
 export interface ComparisonItem {
@@ -41,4 +43,8 @@ export interface LocaleConfig {
   comparisons: readonly ComparisonItem[];
   budgetItems: readonly BudgetItem[];
   salaryPresets: readonly SalaryPreset[];
+  /** Scale-page landmarks specific to this locale (nominal amounts in its currency). */
+  scaleLandmarks: readonly ScaleLandmarkSeed[];
+  /** How many billionaires to plant on the scale, from this locale's source (US: 3 from the global dataset; UK: 5 from src/data/uk-billionaires.ts). */
+  scaleTopBillionaires: number;
 }
