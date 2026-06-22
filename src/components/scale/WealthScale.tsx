@@ -78,6 +78,12 @@ export default function WealthScale({ entries }: WealthScaleProps) {
     return () => ro.disconnect();
   }, []);
 
+  // Restart the journey when the locale (and its bar set / ceiling) changes.
+  useEffect(() => {
+    setPosDollars(0);
+    setIsPlaying(false);
+  }, [locale.id]);
+
   useEffect(() => {
     if (!isPlaying || reducedMotion) return;
     const tick = (ts: number) => {
@@ -116,7 +122,7 @@ export default function WealthScale({ entries }: WealthScaleProps) {
 
   const onPointerDown = (e: React.PointerEvent) => {
     dragRef.current = { x: e.clientX };
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!dragRef.current) return;

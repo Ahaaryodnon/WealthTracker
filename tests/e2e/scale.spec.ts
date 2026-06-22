@@ -14,10 +14,13 @@ test.describe("Scale page (bars from zero)", () => {
   test("travelling ends bars: fewer remain 'running' after skipping to $1B", async ({ page }) => {
     await page.goto("/scale");
     const runningStart = await page.locator('[data-testid="wealth-bar"][data-state="running"]').count();
+    const endedStart = await page.locator('[data-testid="wealth-bar"][data-state="ended"]').count();
     await page.getByRole("button", { name: "Skip to $1B" }).click();
     await expect(page.getByRole("status", { name: "Current position" })).toContainText("B");
     const runningAfter = await page.locator('[data-testid="wealth-bar"][data-state="running"]').count();
+    const endedAfter = await page.locator('[data-testid="wealth-bar"][data-state="ended"]').count();
     expect(runningAfter).toBeLessThan(runningStart);
+    expect(endedAfter).toBeGreaterThan(endedStart);
   });
 
   test("UK locale shows a UK Rich List bar", async ({ page }) => {
